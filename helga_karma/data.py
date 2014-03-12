@@ -158,7 +158,7 @@ class KarmaRecord(object):
         self._record[key] = value
 
     def __iter__(self):
-        return six.iterkeys(self._record)
+        return six.iteritems(self._record)
 
     def __str__(self):
         if sys.version_info > (3, 0):
