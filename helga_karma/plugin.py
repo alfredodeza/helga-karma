@@ -193,7 +193,7 @@ class KarmaPlugin(Plugin):
             )
 
         main.remove_alias(alias)
-        return "{usera} and {userb} are now linked.".format(
+        return "{usera} and {userb} are now unlinked.".format(
             usera=matches['usera'],
             userb=matches['userb'],
         )
@@ -207,6 +207,6 @@ class KarmaPlugin(Plugin):
 
         from_record.give_karma_to(to_record)
 
-        return "You're doing good work {nick}!".format(
+        return "You're doing good work, {nick}!".format(
             nick=matches['nick']
         )
