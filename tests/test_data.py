@@ -99,17 +99,18 @@ class TestKarmaRecord(TestCase):
         main_nick = 'one'
         alias_nick = 'two'
 
-        record = self.KarmaRecord.get_for_nick(main_nick)
-        record['value'] = 10
-        record['given'] = 10
-        record['received'] = 10
-        record.save()
-
-        alias_record = self.KarmaRecord.get_for_nick(alias_nick)
-        alias_record['value'] = 10
-        alias_record['given'] = 10
-        alias_record['received'] = 10
-        alias_record.save()
+        record = self._get_karma_record(
+            main_nick,
+            value=10,
+            given=10,
+            received=10,
+        )
+        alias_record = self._get_karma_record(
+            alias_nick,
+            value=10,
+            given=10,
+            received=10,
+        )
 
         record.add_alias(alias_record)
 
