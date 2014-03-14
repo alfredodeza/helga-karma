@@ -1,4 +1,5 @@
-.. image:: https://travis-ci.org/coddingtonbear/helga-karma.png?branch=master   :target: https://travis-ci.org/coddingtonbear/helga-karma
+.. image:: https://travis-ci.org/coddingtonbear/helga-karma.png?branch=master
+   :target: https://travis-ci.org/coddingtonbear/helga-karma
 
 Helga Karma
 ===========
