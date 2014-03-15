@@ -10,6 +10,31 @@ but just a little bit better.
 Commands
 --------
 
+``!t[hanks] <nickname>``
+++++++++++++++++++++++++
+
+Thank somebody for doing a good job!
+
+Example::
+
+    youthere> I've just fitzbangled the horsemonster for you, person.
+    person>   !thanks youthere
+    helga>    You're doing good work, youthere!
+
+Also has an alias -- ``!m[otivate]`` -- for situations in which somebody
+hasn't yet done the thing you're appreciative of::
+
+    somebody> youthere -- could I convince you into orangerunning the
+              twinkleverse?
+    somebody> !m youthere
+    helga>    You're doing good work, youthere!
+    youthere> No problem, somebody!
+
+The people you've thanked (or motivated) will get a little bump in their
+karma (and that bump is variable depending on the ratio of times you --
+the thanker -- have thanked others vs. the number of times you've been
+thanked).
+
 ``!k[arma] [details] [for] [<nick>]``
 +++++++++++++++++++++++++++++++++++++
 
@@ -69,24 +94,3 @@ Example::
 
     person> !karma coddingtonbear!=coddingtonbear_away
     helga>  coddingtonbear and coddingtonbear_away are now unlinked, person.
-
-``!t[hanks] <nickname>``
-++++++++++++++++++++++++
-
-Thank somebody for doing a good job!
-
-Example::
-
-    youthere> I've just fitzbangled the horsemonster for you, person.
-    person>   !thanks youthere
-    helga>    You're doing good work, youthere!
-
-Also has an alias -- ``!m[otivate]`` -- for situations in which somebody
-hasn't yet done the thing you're appreciative of::
-
-    somebody> youthere -- could I convince you into orangerunning the
-              twinkleverse?
-    somebody> !m youthere
-    helga>    You're doing good work, youthere!
-    youthere> No problem, somebody!
-
