@@ -22,13 +22,15 @@ Example::
     helga>    You're doing good work, youthere!
 
 Also has an alias -- ``!m[otivate]`` -- for situations in which somebody
-hasn't yet done the thing you're appreciative of::
+hasn't yet done the thing you're appreciative of or otherwise just
+needs motivation::
 
-    somebody> youthere -- could I convince you into orangerunning the
-              twinkleverse?
+    youthere> I'm having an awful day; I've orangeenveloped the
+              twinkleverse like a dozen times so far and it's not even
+              noon!
     somebody> !m youthere
     helga>    You're doing good work, youthere!
-    youthere> No problem, somebody!
+    somebody> It'll be OK, buddy; it's Friday.
 
 The people you've thanked (or motivated) will get a little bump in their
 karma (and that bump is variable depending on the ratio of times you --
