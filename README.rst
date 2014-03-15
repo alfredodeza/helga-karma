@@ -10,8 +10,8 @@ but just a little bit better.
 Commands
 --------
 
-!k[arma] [details] [for] [<nick>]
-+++++++++++++++++++++++++++++++++
+``!k[arma] [details] [for] [<nick>]``
++++++++++++++++++++++++++++++++++++++
 
 Get a user's Karma information.
 
@@ -36,8 +36,8 @@ even abbreviate the command itself::
             thanks 12 times, karma coefficient: 0.6, aliases: adam,
             coddingtonbear)
 
-!k[arma] top [10]
-+++++++++++++++++
+``!k[arma] top [10]``
++++++++++++++++++++++
 
 Get a list of people ordered by how much karma they have.
 
@@ -49,8 +49,8 @@ Example::
            #3: whoisthis (1408 karma)
     person> Not me :-(
 
-!k[arma] <nick1>==<nick2>
-+++++++++++++++++++++++++
+``!k[arma] <nick1>==<nick2>``
++++++++++++++++++++++++++++++
 
 Link two nicknames together to share the same karma values.  This is commonly
 used for away nicknames.
@@ -60,8 +60,8 @@ Example::
     person> !karma coddingtonbear==coddingtonbear_away
     helga>  coddingtonbear and coddingtonbear_away are now linked, person.
 
-!k[arma] <nick1>!=<nick2>
-+++++++++++++++++++++++++
+``!k[arma] <nick1>!=<nick2>``
++++++++++++++++++++++++++++++
 
 Unlink two nicknames from one another.
 
@@ -70,8 +70,8 @@ Example::
     person> !karma coddingtonbear!=coddingtonbear_away
     helga>  coddingtonbear and coddingtonbear_away are now unlinked, person.
 
-!t[hanks] <nickname>
-++++++++++++++++++++
+``!t[hanks] <nickname>``
+++++++++++++++++++++++++
 
 Thank somebody for doing a good job!
 
