@@ -13,13 +13,9 @@ setup(
     version=version,
     classifiers=[
         'Development Status :: 4 - Beta',
-        'Environment :: IRC',
-        'Intended Audience :: Twisted Developers, IRC Bot Developers',
         'License :: OSI Approved :: MIT License',
         'Operating System :: OS Independent',
         'Programming Language :: Python',
-        'Topic :: Software Development :: Libraries :: Python Modules',
-        'Topic :: IRC Bots'
     ],
     author='Adam Coddington',
     author_email='me@adamcoddington.net',
