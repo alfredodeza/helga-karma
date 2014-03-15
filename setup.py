@@ -1,10 +1,17 @@
+import os.path
 from setuptools import setup, find_packages
 
 from helga_karma import __version__ as version
 
 
 requirements = []
-with open('requirements.txt', 'r') as in_:
+with open(
+    os.path.join(
+        os.path.dirname(__file__),
+        'requirements.txt',
+    ),
+    'r'
+) as in_:
     requirements = in_.readlines()
 
 
