@@ -17,17 +17,20 @@ Get a user's Karma information.
 
 Example::
 
+    person> I wonder how much karma I have.
     person> !karma
     helga>  person has about 24 karma, person.
 
 You can also ask about another person's karma::
 
+    person> I wonder how much karma somebody has.
     person> !karma somebody
     helga>  somebody has about 10 karma, person.
 
 And, if you're curious about the details, you can ask for those, too, and
 even abbreviate the command itself::
 
+    person> I wonder if somebody has every thanked anybody in his life.
     person> !k details somebody
     helga>  somebody has 10.1 karma.  (thanked others 20 times, received
             thanks 12 times, karma coefficient: 0.6, aliases: adam,
@@ -40,9 +43,11 @@ Get a list of people ordered by how much karma they have.
 
 Example::
 
+    person> Let's see who's the most helpful around here.
     person> !karma top 3
     helga> #1: somebody (2213 karma) | #2: somebody_else (2013 karma) |
            #3: whoisthis (1408 karma)
+    person> Not me :-(
 
 !k[arma] <nick1>==<nick2>
 +++++++++++++++++++++++++
