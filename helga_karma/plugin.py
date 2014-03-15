@@ -81,7 +81,7 @@ class KarmaPlugin(Plugin):
                     received=record['received'],
                     coefficient=round(record.get_coefficient(), 2),
                     aliases=(
-                        ', '.join([u['nick'] for u in aliases])
+                        ', '.join(aliases)
                         if len(aliases) else 'none'
                     )
                 )
