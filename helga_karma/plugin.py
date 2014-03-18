@@ -22,6 +22,35 @@ class KarmaPlugin(Plugin):
         'unlink': r'^!k(?:arma)? (?P<usera>[\w|-]+) ?!= ?(?P<userb>[\w|-]+)$',
         'give': r'^!(t(?:hanks)?|m(?:otivate)?) (?P<nick>[\w|-]+)$',
     }
+    MESSAGES = {
+        'info_none': (
+            'I\'m not aware of {for_nick} having done anything '
+            'helpful, {nick}.'
+        ),
+        'info_detailed': (
+            '{for_nick} has {value} karma. ('
+            'thanked others {given} times, '
+            'received thanks {received} times, '
+            'karma coefficient {coefficient}, '
+            'aliases: {aliases})'
+        ),
+        'info_standard': '{for_nick} has about {value} karma, {nick}.',
+
+        'linked_already': '{secondary} is already linked to {main}.',
+        'linked': '{main} and {secondary} are now linked, {nick}.',
+
+        'unlinked_not_linked': '{usera} and {userb} are not linked.',
+        'unlinked': '{usera} and {userb} are now unlinked.',
+
+        'too_arrogant': 'Uhh, do you want a gold star, {nick}?',
+        'good_job': 'You\'re doing good work, {nick}!',
+
+        'unknown_user_many': (
+            'Neither of the users you specified appear to exist, {nick}.'
+        ),
+        'unknown_user': 'I don\'t know who {for_nick} is, {nick}.',
+        'nope': 'That doesn\'t make much sense now, does it, {nick}.'
+    }
 
     def __init__(self, *args, **kwargs):
         super(KarmaPlugin, self).__init__(*args, **kwargs)
@@ -37,6 +66,9 @@ class KarmaPlugin(Plugin):
     @property
     def karma_commands(self):
         return self._compiled_karma_commands
+
+    def format_message(self, name, **kwargs):
+        return self.MESSAGES[name].format(**kwargs)
 
     def run(self, channel, nick, message, command, groups):
         try:
@@ -59,39 +91,31 @@ class KarmaPlugin(Plugin):
         record = KarmaRecord.get_for_nick(for_nick)
 
         if not record['value'] and not detailed:
-            return (
-                "I'm not aware of {nick} having done anything "
-                "helpful, {nick}.".format(
-                    for_nick=for_nick,
-                    nick=nick,
-                )
+            return self.format_message(
+                'info_none',
+                for_nick=for_nick,
+                nick=nick,
             )
 
         if detailed:
             aliases = record.get_aliases()
-            return (
-                '{for_nick} has {value} karma. ('
-                'thanked others {given} times, '
-                'received thanks {received} times, '
-                'karma coefficient {coefficient}, '
-                'aliases: {aliases})'.format(
-                    for_nick=record['nick'],
-                    value=round(record['value'], 2),
-                    given=record['given'],
-                    received=record['received'],
-                    coefficient=round(record.get_coefficient(), 2),
-                    aliases=(
-                        ', '.join(aliases)
-                        if len(aliases) else 'none'
-                    )
+            return self.format_message(
+                'info_detailed',
+                for_nick=record['nick'],
+                value=round(record['value'], 2),
+                given=record['given'],
+                received=record['received'],
+                coefficient=round(record.get_coefficient(), 2),
+                aliases=(
+                    ', '.join(aliases)
+                    if len(aliases) else 'none'
                 )
             )
-        return (
-            "{for_nick} has about {value} karma, {nick}.".format(
-                for_nick=for_nick,
-                value=int(round(record['value'], 0)),
-                nick=nick,
-            )
+        return self.format_message(
+            'info_standard',
+            for_nick=for_nick,
+            value=int(round(record['value'], 0)),
+            nick=nick,
         )
 
     def top(self, channel, nick, message, matches):
@@ -110,9 +134,7 @@ class KarmaPlugin(Plugin):
 
     def link(self, channel, nick, message, matches):
         if matches['usera'] == matches['userb']:
-            return "That doesn't make much sense now, does it, {nick}.".format(
-                nick=nick
-            )
+            return self.format_message('nope', nick=nick)
 
         records = {
             matches['usera']: KarmaRecord.get_for_nick(
@@ -129,9 +151,10 @@ class KarmaPlugin(Plugin):
         if not all(six.itervalues(records)):
             for name, record in six.iteritems(records):
                 if not record:
-                    return "I don't know who {who} is, {nick}.".format(
-                        who=name,
-                        nick=nick,
+                    return self.format_message(
+                        'unknown_user',
+                        for_nick=name,
+                        nick=nick
                     )
 
         main, secondary = records.values()
@@ -141,22 +164,24 @@ class KarmaPlugin(Plugin):
             main = _main
 
         if secondary['nick'] in main.get_aliases():
-            return "{secondary} is already linked to {main}.".format(
-                secondary=secondary['nick'],
+            return self.format_message(
+                'linked_already',
                 main=main['nick'],
+                secondary=secondary['nick'],
             )
 
         main.add_alias(secondary)
-        return "{main} and {secondary} are now linked, {nick}.".format(
+        return self.format_message(
+            'linked',
             main=main['nick'],
             secondary=secondary['nick'],
-            nick=nick,
         )
 
     def unlink(self, channel, nick, message, matches):
         if matches['usera'] == matches['userb']:
-            return "That doesn't make much sense now, does it, {nick}.".format(
-                nick=nick
+            return self.format_message(
+                'nope',
+                nick=nick,
             )
 
         records = {
@@ -177,36 +202,39 @@ class KarmaPlugin(Plugin):
         except IndexError:
             alias = None
         if len(actual) == 0:
-            return (
-                "Neither of the users you specified appear to exist, "
-                "{nick}.".format(
-                    nick=nick,
-                )
+            return self.format_message(
+                'unknown_user_many',
+                nick=nick,
             )
+
         main = actual.pop()
         if len(actual) == 2 or alias not in main.get_aliases():
-            return (
-                "{usera} and {userb} are not linked.".format(
-                    usera=matches['usera'],
-                    userb=matches['userb'],
-                )
+            return self.format_message(
+                'unlinked_not_linked',
+                usera=matches['usera'],
+                userb=matches['userb'],
             )
 
         main.remove_alias(alias)
-        return "{usera} and {userb} are now unlinked.".format(
+        return self.format_message(
+            'unlinked',
             usera=matches['usera'],
             userb=matches['userb'],
         )
 
     def give(self, channel, nick, message, matches):
         if matches['nick'] == nick:
-            return "Uhh, do you want a gold star, {nick}?".format(nick=nick)
+            return self.format_message(
+                'too_arrogant',
+                nick=nick,
+            )
 
         from_record = KarmaRecord.get_for_nick(nick)
         to_record = KarmaRecord.get_for_nick(matches['nick'])
 
         from_record.give_karma_to(to_record)
 
-        return "You're doing good work, {nick}!".format(
+        return self.format_message(
+            'good_job',
             nick=matches['nick']
         )
