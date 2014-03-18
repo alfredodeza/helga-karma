@@ -53,6 +53,15 @@ class TestKarmaRecord(TestCase):
 
         self.assertEqual(actual_result, expected_result)
 
+    def test_get_nick_with_pipe(self):
+        arbitrary_nick = 'somebody|away'
+
+        k = self.KarmaRecord({})
+        actual_result = k.get_actual_nick(arbitrary_nick)
+        expected_result = arbitrary_nick.split('|')[0]
+
+        self.assertEqual(actual_result, expected_result)
+
     def test_get_actual_nick_no_alias(self):
         arbitrary_nick = 'two'
 

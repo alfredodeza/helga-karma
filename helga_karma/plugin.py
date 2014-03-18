@@ -15,12 +15,12 @@ class KarmaPlugin(Plugin):
     KARMA_COMMANDS = {
         'info': (
             r'^!k(?:arma)? ?(?P<detailed>details)?'
-            r' ?(?:for)? ?(?P<nick>[\w-]+)?$'
+            r' ?(?:for)? ?(?P<nick>[\w|-]+)?$'
         ),
         'top': r'^!k(?:arma)? top (?P<count>\d+)$',
-        'link': r'^!k(?:arma)? (?P<usera>[\w-]+) ?== ?(?P<userb>[\w-]+)$',
-        'unlink': r'^!k(?:arma)? (?P<usera>[\w-]+) ?!= ?(?P<userb>[\w-]+)$',
-        'give': r'^!(t(?:hanks)?|m(?:otivate)?) (?P<nick>[\w]+)$',
+        'link': r'^!k(?:arma)? (?P<usera>[\w|-]+) ?== ?(?P<userb>[\w|-]+)$',
+        'unlink': r'^!k(?:arma)? (?P<usera>[\w|-]+) ?!= ?(?P<userb>[\w|-]+)$',
+        'give': r'^!(t(?:hanks)?|m(?:otivate)?) (?P<nick>[\w|-]+)$',
     }
 
     def __init__(self, *args, **kwargs):
