@@ -133,42 +133,25 @@ class KarmaPlugin(Plugin):
         return ' | '.join(lines)
 
     def link(self, channel, nick, message, matches):
-        if matches['usera'] == matches['userb']:
-            return self.format_message('nope', nick=nick)
-
+        # KarmaRecord.get_for_nick will resolve aliases for us,
+        # so we don't need to worry about checking whether they're already
+        # linked as long as we make sure that the resultant records' nicks
+        # do not already match.
         records = {
-            matches['usera']: KarmaRecord.get_for_nick(
-                matches['usera'],
-                use_aliases=False,
-                get_empty=False,
-            ),
-            matches['userb']: KarmaRecord.get_for_nick(
-                matches['userb'],
-                use_aliases=False,
-                get_empty=False,
-            )
+            'usera': KarmaRecord.get_for_nick(matches['usera']),
+            'userb': KarmaRecord.get_for_nick(matches['userb'])
         }
-        if not all(six.itervalues(records)):
-            for name, record in six.iteritems(records):
-                if not record:
-                    return self.format_message(
-                        'unknown_user',
-                        for_nick=name,
-                        nick=nick
-                    )
+        if records['usera']['nick'] == records['userb']['nick']:
+            return self.format_message(
+                'nope',
+                nick=nick,
+            )
 
         main, secondary = records.values()
         if secondary['value'] > main['value']:
             _main = secondary
             secondary = main
             main = _main
-
-        if secondary['nick'] in main.get_aliases():
-            return self.format_message(
-                'linked_already',
-                main=main['nick'],
-                secondary=secondary['nick'],
-            )
 
         main.add_alias(secondary)
         return self.format_message(

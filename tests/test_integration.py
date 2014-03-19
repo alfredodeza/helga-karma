@@ -129,24 +129,6 @@ class TestKarmaPluginIntegration(TestCase):
                 nick=self.nick,
             )
 
-    def test_link_does_not_exist(self):
-        nick = 'alpha'
-        nick_b = 'beta'
-
-        message = '!k %s==%s' % (
-            nick,
-            nick_b,
-        )
-        with mock.patch.object(self.plugin, 'format_message') as fmt_msg:
-            self.plugin.process(
-                self.client, self.channel, self.nick, message
-            )
-            fmt_msg.assert_called_with(
-                'unknown_user',
-                for_nick=nick,
-                nick=self.nick,
-            )
-
     def test_link_linked_already(self):
         nick = 'alpha'
         nick_b = 'beta'
@@ -165,16 +147,15 @@ class TestKarmaPluginIntegration(TestCase):
                 self.client, self.channel, self.nick, message
             )
             fmt_msg.assert_called_with(
-                'linked_already',
-                main=nick,
-                secondary=nick_b,
+                'nope',
+                nick=self.nick
             )
 
     def test_link_linked_ok(self):
         nick = 'alpha'
         nick_b = 'beta'
 
-        self.create_nick(nick)
+        self.create_nick(nick, value=10)
         self.create_nick(nick_b)
 
         message = '!k %s==%s' % (
