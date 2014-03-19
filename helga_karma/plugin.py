@@ -2,7 +2,7 @@ import re
 
 import six
 
-from helga import log
+from helga import log, settings
 from helga.plugins import Plugin
 
 from .data import KarmaRecord
@@ -28,13 +28,16 @@ class KarmaPlugin(Plugin):
             'helpful, {nick}.'
         ),
         'info_detailed': (
-            '{for_nick} has {value} karma. ('
+            '{for_nick} has {value} {VALUE_NAME}. ('
             'thanked others {given} times, '
             'received thanks {received} times, '
-            'karma coefficient {coefficient}, '
+            '{COEFFICIENT_NAME} {coefficient}, '
             'aliases: {aliases})'
         ),
-        'info_standard': '{for_nick} has about {value} karma, {nick}.',
+        'info_standard': (
+            '{for_nick} has about {value} '
+            '{VALUE_NAME}, {nick}.'
+        ),
 
         'linked_already': '{secondary} is already linked to {main}.',
         'linked': '{main} and {secondary} are now linked, {nick}.',
@@ -68,6 +71,16 @@ class KarmaPlugin(Plugin):
         return self._compiled_karma_commands
 
     def format_message(self, name, **kwargs):
+        kwargs['VALUE_NAME'] = getattr(
+            settings,
+            'KARMA_VALUE_NAME',
+            'karma'
+        )
+        kwargs['COEFFICIENT_NAME'] = getattr(
+            settings,
+            'KARMA_COEFFICIENT_NAME',
+            'karma coefficient'
+        )
         return self.MESSAGES[name].format(**kwargs)
 
     def run(self, channel, nick, message, command, groups):
