@@ -39,6 +39,8 @@ class KarmaPlugin(Plugin):
             '{VALUE_NAME}, {nick}.'
         ),
 
+        'top': '#{idx}: {nick} ({value} {VALUE_NAME})',
+
         'linked_already': '{secondary} is already linked to {main}.',
         'linked': '{main} and {secondary} are now linked.',
 
@@ -137,7 +139,8 @@ class KarmaPlugin(Plugin):
         lines = []
         for idx, record in enumerate(top_n):
             lines.append(
-                '#{idx}: {nick} ({value} karma)'.format(
+                self.format_message(
+                    'top',
                     idx=idx+1,
                     nick=record['nick'],
                     value=round(record['value'], 1),
