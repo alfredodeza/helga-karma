@@ -40,7 +40,7 @@ class KarmaPlugin(Plugin):
         ),
 
         'linked_already': '{secondary} is already linked to {main}.',
-        'linked': '{main} and {secondary} are now linked, {nick}.',
+        'linked': '{main} and {secondary} are now linked.',
 
         'unlinked_not_linked': '{usera} and {userb} are not linked.',
         'unlinked': '{usera} and {userb} are now unlinked.',
