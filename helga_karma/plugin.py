@@ -67,6 +67,10 @@ class KarmaPlugin(Plugin):
         for cmd_name, cmd_re in six.iteritems(self.KARMA_COMMANDS):
             commands[getattr(self, cmd_name)] = re.compile(cmd_re)
         self._compiled_karma_commands = commands
+        self._messages = self.MESSAGES.copy()
+        self._messages.update(
+            getattr(settings, 'KARMA_MESSAGE_OVERRIDES', {})
+        )
 
     @property
     def karma_commands(self):
@@ -83,7 +87,7 @@ class KarmaPlugin(Plugin):
             'KARMA_COEFFICIENT_NAME',
             'karma coefficient'
         )
-        return self.MESSAGES[name].format(**kwargs)
+        return self._messages[name].format(**kwargs)
 
     def run(self, channel, nick, message, command, groups):
         try:
