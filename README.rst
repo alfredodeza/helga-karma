@@ -96,3 +96,63 @@ Example::
 
     person> !karma coddingtonbear!=coddingtonbear_away
     helga>  coddingtonbear and coddingtonbear_away are now unlinked, person.
+
+
+Settings
+--------
+
+``KARMA_MESSAGE_OVERRIDES``
++++++++++++++++++++++++++++
+
+You can override the existing messages by adding dictionary entries to 
+this dictionary matching the name of existing messages.
+See ``helga_karma.plugin.MESSAGES`` for existing messages.
+
+The following is an example for overriding the standard karma value message
+with one translated into Russian, but this can also be used to reword
+existing messages.
+
+```python
+KARMA_MESSAGE_OVERRIDES = {
+    'info_standard': 'У {for_nick} есть {value} {VALUE_NAME}, {nick}'
+}
+```
+
+``KARMA_VALUE_NAME``
+++++++++++++++++++++
+
+Set this to a string to replace the word 'karma' in all messages.
+
+To make helga-karma behave more like MeowMeowBeenz, you would add
+the following setting:
+
+```python
+KARMA_VALUE_NAME='MeowMeowBeenz'
+```
+
+``KARMA_COEFFICIENT_NAME``
+++++++++++++++++++++++++++
+
+Set this to a string to replace the word 'karma coefficient' in the detailed
+per-user karma report.
+
+To make helga-karma behave more like MeowMeowBeenz, you could add the
+following setting:
+
+```python
+KARMA_COEFFICIENT_NAME='5 Factor'
+```
+
+``KARMA_SCALED_RANGE``
+++++++++++++++++++++++
+
+Set this to a 2-tuple of values between which all users' karma should be
+continuously distributed.
+
+To make helga-karma behave more like MeowMeowBeenz (in which all 
+users have karma values ranging between one and five), you could
+add the following setting:
+
+```python
+KARMA_SCALED_RANGE=(1, 5)
+```
