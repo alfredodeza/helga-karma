@@ -208,3 +208,43 @@ class TestKarmaRecord(TestCase):
         self.assertEquals(from_record['given'], 11)
         self.assertEquals(to_record['received'], 11)
         self.assertEquals(to_record['value'], 11)
+
+    def test_get_global_karma_maximum(self):
+        maximum_value = 30
+        not_maximum_value = 20
+        also_not_maximum_value = 10
+
+        self._get_karma_record('alpha', value=not_maximum_value)
+        self._get_karma_record('delta', value=maximum_value)
+        self._get_karma_record('beta', value=also_not_maximum_value)
+
+        expected_value = maximum_value
+        actual_value = self.KarmaRecord.get_global_karma_maximum()
+
+        self.assertEqual(actual_value, expected_value)
+
+    def test_get_value_unscaled(self):
+        karma_value = 223.210
+        record = self._get_karma_record('delta', value=karma_value)
+
+        expected_result = karma_value
+        actual_result = record.get_value()
+
+        self.assertEqual(actual_result, expected_result)
+
+    @mock.patch('helga_karma.data.settings')
+    def test_get_value_scaled(self, settings):
+        karma_maximum = 5
+        maximum_user_value = 104.24
+        active_user_value = 60.12
+
+        settings.KARMA_SCALED_MAXIMUM = karma_maximum
+        self._get_karma_record('alpha', value=maximum_user_value)
+        user = self._get_karma_record('beta', value=active_user_value)
+
+        expected_result = (
+            (active_user_value / maximum_user_value) * karma_maximum
+        )
+        actual_result = user.get_value()
+
+        self.assertEqual(actual_result, expected_result)

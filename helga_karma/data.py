@@ -4,7 +4,7 @@ import sys
 import pymongo
 import six
 
-from helga import log
+from helga import log, settings
 from helga.db import db
 
 
@@ -59,6 +59,13 @@ class KarmaRecord(object):
             .limit(limit)
         ):
             yield cls(result)
+
+    @classmethod
+    def get_global_karma_maximum(cls):
+        top_1 = list(cls.get_top(limit=1))
+        if not top_1:
+            return 0
+        return top_1[0].get('value', 0)
 
     def add_alias(self, other):
         for key in ['given', 'received', 'value']:
@@ -137,6 +144,23 @@ class KarmaRecord(object):
 
         return value
 
+    def get_value(self):
+        output_scale = getattr(
+            settings,
+            'KARMA_SCALED_MAXIMUM',
+            None
+        )
+        if not output_scale:
+            return self.get('value', 0)
+
+        maximum_karma = float(self.get_global_karma_maximum())
+        my_karma = self.get('value', 0)
+
+        if maximum_karma == 0:
+            return 0
+
+        return (my_karma / maximum_karma) * output_scale
+
     def get_coefficient(self):
         return (
             max(float(self._record['received']), 1.0)
@@ -152,6 +176,12 @@ class KarmaRecord(object):
 
     def delete(self):
         db.karma_user.remove({'nick': self['nick']})
+
+    def get(self, key, default=None):
+        try:
+            return self[key]
+        except KeyError:
+            return default
 
     def __getitem__(self, key):
         return self._record[key]

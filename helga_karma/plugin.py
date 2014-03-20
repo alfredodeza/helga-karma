@@ -105,7 +105,7 @@ class KarmaPlugin(Plugin):
 
         record = KarmaRecord.get_for_nick(for_nick)
 
-        if not record['value'] and not detailed:
+        if not record.get_value() and not detailed:
             return self.format_message(
                 'info_none',
                 for_nick=for_nick,
@@ -117,7 +117,7 @@ class KarmaPlugin(Plugin):
             return self.format_message(
                 'info_detailed',
                 for_nick=record['nick'],
-                value=round(record['value'], 2),
+                value=round(record.get_value(), 2),
                 given=record['given'],
                 received=record['received'],
                 coefficient=round(record.get_coefficient(), 2),
@@ -129,7 +129,7 @@ class KarmaPlugin(Plugin):
         return self.format_message(
             'info_standard',
             for_nick=for_nick,
-            value=int(round(record['value'], 0)),
+            value=int(round(record.get_value(), 0)),
             nick=nick,
         )
 
@@ -143,7 +143,7 @@ class KarmaPlugin(Plugin):
                     'top',
                     idx=idx+1,
                     nick=record['nick'],
-                    value=round(record['value'], 1),
+                    value=round(record.get_value(), 1),
                 )
             )
         return ' | '.join(lines)

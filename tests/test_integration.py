@@ -269,3 +269,26 @@ class TestKarmaPluginIntegration(TestCase):
                 'good_job',
                 nick=nick,
             )
+
+    @mock.patch('helga_karma.data.KarmaRecord.get_value')
+    def test_karma_results_uses_value(self, get_value):
+        karma_value = 54.0
+        nick = 'alpha'
+        arbitrary_nick_record = {}
+        message = '!k %s' % nick
+        self.create_nick(nick, **arbitrary_nick_record)
+
+        get_value.return_value = karma_value
+        with (
+            mock.patch.object(self.plugin, 'format_message')
+        ) as fmt_message:
+            self.plugin.process(
+                self.client, self.channel, self.nick, message
+            )
+
+            fmt_message.assert_called_with(
+                'info_standard',
+                for_nick=nick,
+                nick=self.nick,
+                value=karma_value,
+            )
