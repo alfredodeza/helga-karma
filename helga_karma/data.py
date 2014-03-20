@@ -145,12 +145,12 @@ class KarmaRecord(object):
         return value
 
     def get_value(self):
-        output_scale = getattr(
+        output_scale_min, output_scale_max = getattr(
             settings,
-            'KARMA_SCALED_MAXIMUM',
-            None
+            'KARMA_SCALED_RANGE',
+            (0, 0),
         )
-        if not output_scale:
+        if not output_scale_max:
             return self.get('value', 0)
 
         maximum_karma = float(self.get_global_karma_maximum())
@@ -159,7 +159,9 @@ class KarmaRecord(object):
         if maximum_karma == 0:
             return 0
 
-        return (my_karma / maximum_karma) * output_scale
+        return (
+            (my_karma / maximum_karma) * (output_scale_max - output_scale_min)
+        ) + output_scale_min
 
     def get_coefficient(self):
         return (
