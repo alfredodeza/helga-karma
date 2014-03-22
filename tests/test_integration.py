@@ -292,3 +292,23 @@ class TestKarmaPluginIntegration(TestCase):
                 nick=self.nick,
                 value=karma_value,
             )
+
+    @mock.patch('helga_karma.plugin.settings')
+    def test_message_overrides(self, settings):
+        overridden_message = 'info_standard'
+        not_overridden_message = 'linked'
+
+        settings.KARMA_MESSAGE_OVERRIDES = {
+            overridden_message: "Arbitrary Message"
+        }
+        from helga_karma.plugin import KarmaPlugin
+        plugin = KarmaPlugin()
+
+        self.assertNotEqual(
+            plugin._messages[overridden_message],
+            self.plugin._messages[overridden_message],
+        )
+        self.assertEqual(
+            plugin._messages[not_overridden_message],
+            self.plugin._messages[not_overridden_message]
+        )
