@@ -144,23 +144,30 @@ def unalias():
                '(t[hanks] | m[otivate]) <nick> | '
                '[un]alias <nick1> <nick2>)'))
 def karma(client, channel, nick, message, command, args):
-    if command in ('k', 'karma'):
-        try:
-            subcmd = args[0]
-        except IndexError:
-            # FIXME: info for me
-            return None
-
-        if subcmd == 'top':
-            try:
-                limit = int(args[1])
-            except (IndexError, ValueError):
-                limit = 10
-            return top(limit)
-    elif command in ('t', 'thanks', 'm', 'motivate'):
+    if command in ('t', 'thanks', 'm', 'motivate'):
         return give(from_nick=nick, to_nick=args[0])
-    elif command in ('alias', 'unlias'):
+
+    if command in ('alias', 'unlias'):
         pass
+
+    # Handle the base `karma` command
+    if not args:
+        return info(requested_by=nick, for_nick=nick)
+
+    subcmd = args[0]
+
+    # Handle top N karma
+    if subcmd == 'top':
+        try:
+            limit = int(args[1])
+        except (IndexError, ValueError):
+            limit = 10
+        return top(limit)
+
+    if subcmd == 'details':
+        return info(requested_by=nick, for_nick=args[-1], detailed=True)
+
+    return info(requested_by=nick, for_nick=nick)
 
 
 class KarmaPlugin(Plugin):
