@@ -158,3 +158,24 @@ class TestKarmaPlugin(TestCase):
             db.get_for_nick.side_effect = [None, user2]
 
             user2.remove_alias.assertCalledWith(user1)
+
+    @mock.patch('helga_karma.plugin.settings')
+    def test_message_overrides(self, settings):
+        overridden_message = 'info_standard'
+        not_overridden_message = 'linked'
+
+        settings.KARMA_MESSAGE_OVERRIDES = {
+            overridden_message: "Arbitrary Message"
+        }
+        from helga_karma.plugin import format_message, MESSAGES
+
+        kwargs = {'main': 'foo', 'secondary': 'bar'}
+
+        self.assertEqual(
+            format_message(not_overridden_message, **kwargs),
+            MESSAGES[not_overridden_message].format(**kwargs)
+        )
+        self.assertEqual(
+            format_message(overridden_message),
+            settings.KARMA_MESSAGE_OVERRIDES[overridden_message]
+        )
