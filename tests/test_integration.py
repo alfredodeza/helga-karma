@@ -16,10 +16,11 @@ class TestKarmaPluginIntegration(TestCase):
         self.addCleanup(self.db_patch.stop)
 
         from helga_karma.data import KarmaRecord
-        from helga_karma.plugin import KarmaPlugin
+        from helga_karma import plugin
         from helga.db import db
+
         self.KarmaRecord = KarmaRecord
-        self.plugin = KarmaPlugin()
+        self.plugin = plugin
         self.db = db
         self.client = None
         self.channel = None
@@ -62,7 +63,7 @@ class TestKarmaPluginIntegration(TestCase):
         message = '!k %s' % nick
 
         with mock.patch.object(self.plugin, 'format_message') as fmt_msg:
-            self.plugin.process(self.client, self.channel, self.nick, message)
+            self.plugin.karma(self.client, self.channel, self.nick, message, 'k', [nick])
             fmt_msg.assert_called_with(
                 'info_none',
                 for_nick=nick,
@@ -78,7 +79,7 @@ class TestKarmaPluginIntegration(TestCase):
         self.create_nick(nick, **nick_record)
 
         with mock.patch.object(self.plugin, 'format_message') as fmt_msg:
-            self.plugin.process(self.client, self.channel, self.nick, message)
+            self.plugin.karma(self.client, self.channel, self.nick, message, 'k', [nick])
             fmt_msg.assert_called_with(
                 'info_standard',
                 for_nick=nick,
@@ -97,8 +98,8 @@ class TestKarmaPluginIntegration(TestCase):
         self.create_nick(nick, **nick_record)
 
         with mock.patch.object(self.plugin, 'format_message') as fmt_msg:
-            self.plugin.process(
-                self.client, self.channel, self.nick, message
+            self.plugin.karma(
+                self.client, self.channel, self.nick, message, 'k', ['details', nick]
             )
             fmt_msg.assert_called_with(
                 'info_detailed',
@@ -116,13 +117,13 @@ class TestKarmaPluginIntegration(TestCase):
         nick = 'alpha'
         self.create_nick(nick)
 
-        message = '!k %s==%s' % (
+        message = '!k alias %s %s' % (
             nick,
             nick,
         )
         with mock.patch.object(self.plugin, 'format_message') as fmt_msg:
-            self.plugin.process(
-                self.client, self.channel, self.nick, message
+            self.plugin.karma(
+                self.client, self.channel, self.nick, message, 'k', ['alias', nick, nick]
             )
             fmt_msg.assert_called_with(
                 'nope',
@@ -138,13 +139,13 @@ class TestKarmaPluginIntegration(TestCase):
             aliases=[nick_b],
         )
 
-        message = '!k %s==%s' % (
+        message = '!k alias %s %s' % (
             nick,
             nick_b,
         )
         with mock.patch.object(self.plugin, 'format_message') as fmt_msg:
-            self.plugin.process(
-                self.client, self.channel, self.nick, message
+            self.plugin.karma(
+                self.client, self.channel, self.nick, message, 'k', ['alias', nick, nick_b]
             )
             fmt_msg.assert_called_with(
                 'nope',
@@ -158,13 +159,13 @@ class TestKarmaPluginIntegration(TestCase):
         self.create_nick(nick, value=10)
         self.create_nick(nick_b)
 
-        message = '!k %s==%s' % (
+        message = '!k alias %s %s' % (
             nick,
             nick_b,
         )
         with mock.patch.object(self.plugin, 'format_message') as fmt_msg:
-            self.plugin.process(
-                self.client, self.channel, self.nick, message
+            self.plugin.karma(
+                self.client, self.channel, self.nick, message, 'k', ['alias', nick, nick_b]
             )
             fmt_msg.assert_called_with(
                 'linked',
@@ -176,13 +177,13 @@ class TestKarmaPluginIntegration(TestCase):
         nick = 'alpha'
         self.create_nick(nick)
 
-        message = '!k %s!=%s' % (
+        message = '!k unalias %s %s' % (
             nick,
             nick,
         )
         with mock.patch.object(self.plugin, 'format_message') as fmt_msg:
-            self.plugin.process(
-                self.client, self.channel, self.nick, message
+            self.plugin.karma(
+                self.client, self.channel, self.nick, message, 'k', ['unalias', nick, nick]
             )
             fmt_msg.assert_called_with(
                 'nope',
@@ -193,13 +194,13 @@ class TestKarmaPluginIntegration(TestCase):
         nick = 'alpha'
         nick_b = 'beta'
 
-        message = '!k %s!=%s' % (
+        message = '!k unalias %s %s' % (
             nick,
             nick_b,
         )
         with mock.patch.object(self.plugin, 'format_message') as fmt_msg:
-            self.plugin.process(
-                self.client, self.channel, self.nick, message
+            self.plugin.karma(
+                self.client, self.channel, self.nick, message, 'k', ['unalias', nick, nick_b]
             )
             fmt_msg.assert_called_with(
                 'unknown_user_many',
@@ -211,13 +212,13 @@ class TestKarmaPluginIntegration(TestCase):
         nick_b = 'beta'
         self.create_nick(nick)
 
-        message = '!k %s!=%s' % (
+        message = '!k unalias %s %s' % (
             nick,
             nick_b,
         )
         with mock.patch.object(self.plugin, 'format_message') as fmt_msg:
-            self.plugin.process(
-                self.client, self.channel, self.nick, message
+            self.plugin.karma(
+                self.client, self.channel, self.nick, message, 'k', ['unalias', nick, nick_b]
             )
             fmt_msg.assert_called_with(
                 'unlinked_not_linked',
@@ -230,13 +231,13 @@ class TestKarmaPluginIntegration(TestCase):
         nick_b = 'beta'
         self.create_nick(nick, aliases=[nick_b])
 
-        message = '!k %s!=%s' % (
+        message = '!k unalias %s %s' % (
             nick,
             nick_b,
         )
         with mock.patch.object(self.plugin, 'format_message') as fmt_msg:
-            self.plugin.process(
-                self.client, self.channel, self.nick, message
+            self.plugin.karma(
+                self.client, self.channel, self.nick, message, 'k', ['unalias', nick, nick_b]
             )
             fmt_msg.assert_called_with(
                 'unlinked',
@@ -249,8 +250,8 @@ class TestKarmaPluginIntegration(TestCase):
 
         message = '!m %s' % nick
         with mock.patch.object(self.plugin, 'format_message') as fmt_msg:
-            self.plugin.process(
-                self.client, self.channel, self.nick, message
+            self.plugin.karma(
+                self.client, self.channel, self.nick, message, 'm', [nick]
             )
             fmt_msg.assert_called_with(
                 'too_arrogant',
@@ -262,8 +263,8 @@ class TestKarmaPluginIntegration(TestCase):
 
         message = '!m %s' % nick
         with mock.patch.object(self.plugin, 'format_message') as fmt_msg:
-            self.plugin.process(
-                self.client, self.channel, self.nick, message
+            self.plugin.karma(
+                self.client, self.channel, self.nick, message, 'm', [nick]
             )
             fmt_msg.assert_called_with(
                 'good_job',
@@ -282,8 +283,8 @@ class TestKarmaPluginIntegration(TestCase):
         with (
             mock.patch.object(self.plugin, 'format_message')
         ) as fmt_message:
-            self.plugin.process(
-                self.client, self.channel, self.nick, message
+            self.plugin.karma(
+                self.client, self.channel, self.nick, message, 'k', [nick]
             )
 
             fmt_message.assert_called_with(
@@ -301,14 +302,15 @@ class TestKarmaPluginIntegration(TestCase):
         settings.KARMA_MESSAGE_OVERRIDES = {
             overridden_message: "Arbitrary Message"
         }
-        from helga_karma.plugin import KarmaPlugin
-        plugin = KarmaPlugin()
+        from helga_karma.plugin import format_message, MESSAGES
 
-        self.assertNotEqual(
-            plugin._messages[overridden_message],
-            self.plugin._messages[overridden_message],
+        kwargs = {'main': 'foo', 'secondary': 'bar'}
+
+        self.assertEqual(
+            format_message(not_overridden_message, **kwargs),
+            MESSAGES[not_overridden_message].format(**kwargs)
         )
         self.assertEqual(
-            plugin._messages[not_overridden_message],
-            self.plugin._messages[not_overridden_message]
+            format_message(overridden_message),
+            settings.KARMA_MESSAGE_OVERRIDES[overridden_message]
         )
