@@ -131,6 +131,9 @@ def give(from_nick, to_nick):
 
 
 def alias(requested_by, nick1, nick2):
+    """
+    Mark a second nick as an alias of a certain nick
+    """
     # KarmaRecord.get_for_nick will resolve aliases for us,
     # so we don't need to worry about checking whether they're already
     # linked as long as we make sure that the resultant records' nicks
@@ -152,15 +155,46 @@ def alias(requested_by, nick1, nick2):
     )
 
 
-def unalias():
-    pass
+def unalias(requested_by, nick1, nick2):
+    """
+    Unmark a second nick as an alias of a certain nick
+    """
+    if nick1 == nick2:
+        return format_message('nope', nick=requested_by)
+
+    records = {
+        nick1: KarmaRecord.get_for_nick(
+            nick1,
+            use_aliases=False,
+            get_empty=False,
+        ),
+        nick2: KarmaRecord.get_for_nick(
+            nick2,
+            use_aliases=False,
+            get_empty=False,
+        )
+    }
+    actual = [v for v in six.itervalues(records) if v]
+    try:
+        alias = [k for k, v in six.iteritems(records) if not v][0]
+    except IndexError:
+        alias = None
+    if len(actual) == 0:
+        return format_message('unknown_user_many', nick=requested_by)
+
+    main = actual.pop()
+
+    if len(actual) == 2 or alias not in main.get_aliases():
+        return format_message('unlinked_not_linked', usera=nick1, userb=nick2)
+
+    main.remove_alias(alias)
+    return format_message('unlinked', usera=nick1, userb=nick2)
 
 
 @command('karma', aliases=['k', 't', 'thanks', 'm', 'motivate', 'alias', 'unalias'],
          help=('Give and receive karma. Usage: helga ('
-               'k[arma] [(top [num] | [details [for]] [nick])] | '
-               '(t[hanks] | m[otivate]) <nick> | '
-               '[un]alias <nick1> <nick2>)'))
+               'k[arma] [(top [num] | [details [for]] [nick] | [un]alias <nick1> <nick2>)] | '
+               '(t[hanks] | m[otivate]) <nick>)'))
 def karma(client, channel, nick, message, command, args):
     if command in ('t', 'thanks', 'm', 'motivate'):
         return give(from_nick=nick, to_nick=args[0])
@@ -169,7 +203,7 @@ def karma(client, channel, nick, message, command, args):
         return alias(requested_by=nick, nick1=args[0], nick2=args[1])
 
     if command == 'unalias':
-        pass
+        return unalias(requested_by=nick, nick1=args[0], nick2=args[1])
 
     # Handle the base `karma` command
     if not args:

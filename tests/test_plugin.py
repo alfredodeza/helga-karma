@@ -121,6 +121,45 @@ class TestNewStylePlugin(TestCase):
             self.plugin.alias('me', 'foo', 'bar')
             user1.add_alias.assertCalledWith(user2)
 
+    def test_unalias_nope_with_same_nick(self):
+        with mock.patch.object(self.plugin, 'KarmaRecord') as db:
+            db.get_for_nick.side_effect = [
+                {'nick': 'foo'},
+                {'nick': 'foo'},
+            ]
+
+            retval = self.plugin.unalias('me', 'foo', 'foo')
+            assert retval == "That doesn't make much sense now, does it, me."
+
+    def test_unalias_no_records(self):
+        with mock.patch.object(self.plugin, 'KarmaRecord') as db:
+            db.get_for_nick.side_effect = [None, None]
+            retval = self.plugin.unalias('me', 'foo', 'bar')
+            assert retval == "Neither of the users you specified appear to exist, me."
+
+    def test_unalias_non_linked_users(self):
+        with mock.patch.object(self.plugin, 'KarmaRecord') as db:
+            user1 = mock.Mock()
+            user2 = mock.Mock()
+
+            user2.get_aliases.return_value = ['bar']
+
+            db.get_for_nick.side_effect = [user1, user2]
+
+            retval = self.plugin.unalias('me', 'foo', 'bar')
+            assert retval == "foo and bar are not linked."
+
+    def test_unalias(self):
+        with mock.patch.object(self.plugin, 'KarmaRecord') as db:
+            user1 = mock.Mock()
+            user2 = mock.Mock()
+
+            user2.get_aliases.return_value = ['bar']
+
+            db.get_for_nick.side_effect = [None, user2]
+
+            user2.remove_alias.assertCalledWith(user1)
+
 
 class TestKarmaPlugin(TestCase):
     def setUp(self):
