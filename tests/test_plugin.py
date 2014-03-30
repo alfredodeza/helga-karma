@@ -83,6 +83,44 @@ class TestNewStylePlugin(TestCase):
             expected = 'foo has about 1 karma, me.'
             assert retval == expected
 
+    def test_alias_nope_with_same_nick(self):
+        with mock.patch.object(self.plugin, 'KarmaRecord') as db:
+            db.get_for_nick.side_effect = [
+                {'nick': 'foo'},
+                {'nick': 'foo'},
+            ]
+
+            retval = self.plugin.alias('me', 'foo', 'foo')
+            assert retval == "That doesn't make much sense now, does it, me."
+
+    def test_alias_prefers_user_with_highest_value(self):
+        with mock.patch.object(self.plugin, 'KarmaRecord') as db:
+            user1 = mock.Mock(nick='foo', value=1)
+            user2 = mock.Mock(nick='bar', value=5)
+
+            getter = lambda s, k: getattr(s, k)
+            user1.__getitem__ = getter
+            user2.__getitem__ = getter
+
+            db.get_for_nick.side_effect = [user1, user2]
+
+            self.plugin.alias('me', 'foo', 'bar')
+            user2.add_alias.assertCalledWith(user1)
+
+    def test_alias(self):
+        with mock.patch.object(self.plugin, 'KarmaRecord') as db:
+            user1 = mock.Mock(nick='foo', value=1)
+            user2 = mock.Mock(nick='bar', value=1)
+
+            getter = lambda s, k: getattr(s, k)
+            user1.__getitem__ = getter
+            user2.__getitem__ = getter
+
+            db.get_for_nick.side_effect = [user1, user2]
+
+            self.plugin.alias('me', 'foo', 'bar')
+            user1.add_alias.assertCalledWith(user2)
+
 
 class TestKarmaPlugin(TestCase):
     def setUp(self):

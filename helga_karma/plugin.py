@@ -130,8 +130,26 @@ def give(from_nick, to_nick):
     return format_message('good_job', nick=to_nick)
 
 
-def alias():
-    pass
+def alias(requested_by, nick1, nick2):
+    # KarmaRecord.get_for_nick will resolve aliases for us,
+    # so we don't need to worry about checking whether they're already
+    # linked as long as we make sure that the resultant records' nicks
+    # do not already match.
+    user1 = KarmaRecord.get_for_nick(nick1)
+    user2 = KarmaRecord.get_for_nick(nick2)
+
+    if user1['nick'] == user2['nick']:
+        return format_message('nope', nick=requested_by)
+
+    if user2['value'] > user1['value']:
+        user1, user2 = user2, user1
+
+    user1.add_alias(user2)
+    return format_message(
+        'linked',
+        main=user1['nick'],
+        secondary=user2['nick'],
+    )
 
 
 def unalias():
@@ -147,7 +165,10 @@ def karma(client, channel, nick, message, command, args):
     if command in ('t', 'thanks', 'm', 'motivate'):
         return give(from_nick=nick, to_nick=args[0])
 
-    if command in ('alias', 'unlias'):
+    if command == 'alias':
+        return alias(requested_by=nick, nick1=args[0], nick2=args[1])
+
+    if command == 'unalias':
         pass
 
     # Handle the base `karma` command
