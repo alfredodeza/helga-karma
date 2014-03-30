@@ -65,8 +65,19 @@ def info():
     pass
 
 
-def top():
-    pass
+def top(limit=10):
+    top_n = KarmaRecord.get_top(limit)
+    lines = []
+    for idx, record in enumerate(top_n):
+        lines.append(
+            format_message(
+                'top',
+                idx=idx+1,
+                nick=record['nick'],
+                value=round(record.get_value(), 1),
+            )
+        )
+    return lines
 
 
 def give(from_nick, to_nick):
@@ -99,7 +110,18 @@ def unalias():
                '[un]alias <nick1> <nick2>)'))
 def karma(client, channel, nick, message, command, args):
     if command in ('k', 'karma'):
-        pass
+        try:
+            subcmd = args[0]
+        except IndexError:
+            # FIXME: info for me
+            return None
+
+        if subcmd == 'top':
+            try:
+                limit = int(args[1])
+            except (IndexError, ValueError):
+                limit = 10
+            return top(limit)
     elif command in ('t', 'thanks', 'm', 'motivate'):
         return give(from_nick=nick, to_nick=args[0])
     elif command in ('alias', 'unlias'):

@@ -34,6 +34,21 @@ class TestNewStylePlugin(TestCase):
 
             from_user.give_karma_to.assertCalledWith(to_user)
 
+    def test_top(self):
+        with mock.patch.object(self.plugin, 'KarmaRecord') as db:
+            getitem = lambda s, k: getattr(s, k)
+            users = [
+                mock.Mock(nick='foo', get_value=lambda: 1, __getitem__=getitem),
+                mock.Mock(nick='bar', get_value=lambda: 2, __getitem__=getitem),
+                mock.Mock(nick='baz', get_value=lambda: 3, __getitem__=getitem),
+            ]
+            db.get_top.return_value = users
+            ret = self.plugin.top()
+
+            assert ret[0] == '#1: foo (1.0 karma)'
+            assert ret[1] == '#2: bar (2.0 karma)'
+            assert ret[2] == '#3: baz (3.0 karma)'
+
 
 class TestKarmaPlugin(TestCase):
     def setUp(self):
