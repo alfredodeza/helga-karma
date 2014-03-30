@@ -3,12 +3,107 @@ import re
 import six
 
 from helga import log, settings
-from helga.plugins import Plugin
+from helga.plugins import command, Plugin
 
 from .data import KarmaRecord
 
 
 logger = log.getLogger(__name__)
+
+
+MESSAGES = {
+    'info_none': (
+        'I\'m not aware of {for_nick} having done anything '
+        'helpful, {nick}.'
+    ),
+    'info_detailed': (
+        '{for_nick} has {value} {VALUE_NAME}. ('
+        'thanked others {given} times, '
+        'received thanks {received} times, '
+        '{COEFFICIENT_NAME} {coefficient}, '
+        'aliases: {aliases})'
+    ),
+    'info_standard': (
+        '{for_nick} has about {value} '
+        '{VALUE_NAME}, {nick}.'
+    ),
+
+    'top': '#{idx}: {nick} ({value} {VALUE_NAME})',
+
+    'linked_already': '{secondary} is already linked to {main}.',
+    'linked': '{main} and {secondary} are now linked.',
+
+    'unlinked_not_linked': '{usera} and {userb} are not linked.',
+    'unlinked': '{usera} and {userb} are now unlinked.',
+
+    'too_arrogant': 'Uhh, do you want a gold star, {nick}?',
+    'good_job': 'You\'re doing good work, {nick}!',
+
+    'unknown_user_many': (
+        'Neither of the users you specified appear to exist, {nick}.'
+    ),
+    'unknown_user': 'I don\'t know who {for_nick} is, {nick}.',
+    'nope': 'That doesn\'t make much sense now, does it, {nick}.'
+}
+
+
+def format_message(name, **kwargs):
+    kwargs['VALUE_NAME'] = getattr(
+        settings,
+        'KARMA_VALUE_NAME',
+        'karma'
+    )
+    kwargs['COEFFICIENT_NAME'] = getattr(
+        settings,
+        'KARMA_COEFFICIENT_NAME',
+        'karma coefficient'
+    )
+    return MESSAGES[name].format(**kwargs)
+
+
+def info():
+    pass
+
+
+def top():
+    pass
+
+
+def give(from_nick, to_nick):
+    """
+    Give karma from one user to another with some regards to greediness
+    """
+    if from_nick == to_nick:
+        return format_message('too_arrogant', nick=from_nick)
+
+    from_record = KarmaRecord.get_for_nick(from_nick)
+    to_record = KarmaRecord.get_for_nick(to_nick)
+
+    from_record.give_karma_to(to_record)
+
+    return format_message('good_job', nick=to_nick)
+
+
+def alias():
+    pass
+
+
+def unalias():
+    pass
+
+
+@command('karma', aliases=['k', 't', 'thanks', 'm', 'motivate', 'alias', 'unalias'],
+         help=('Give and receive karma. Usage: helga ('
+               'k[arma] [(top [num] | [details [for]] [nick])] | '
+               '(t[hanks] | m[otivate]) <nick> | '
+               '[un]alias <nick1> <nick2>)'))
+def karma(client, channel, nick, message, command, args):
+    if command in ('k', 'karma'):
+        pass
+    elif command in ('t', 'thanks', 'm', 'motivate'):
+        return give(from_nick=nick, to_nick=args[0])
+    elif command in ('alias', 'unlias'):
+        pass
 
 
 class KarmaPlugin(Plugin):
@@ -22,40 +117,6 @@ class KarmaPlugin(Plugin):
         'unlink': r'^!k(?:arma)? (?P<usera>[\w|-]+) ?!= ?(?P<userb>[\w|-]+)$',
         'give': r'^!(t(?:hanks)?|m(?:otivate)?) (?P<nick>[\w|-]+)$',
     }
-    MESSAGES = {
-        'info_none': (
-            'I\'m not aware of {for_nick} having done anything '
-            'helpful, {nick}.'
-        ),
-        'info_detailed': (
-            '{for_nick} has {value} {VALUE_NAME}. ('
-            'thanked others {given} times, '
-            'received thanks {received} times, '
-            '{COEFFICIENT_NAME} {coefficient}, '
-            'aliases: {aliases})'
-        ),
-        'info_standard': (
-            '{for_nick} has about {value} '
-            '{VALUE_NAME}, {nick}.'
-        ),
-
-        'top': '#{idx}: {nick} ({value} {VALUE_NAME})',
-
-        'linked_already': '{secondary} is already linked to {main}.',
-        'linked': '{main} and {secondary} are now linked.',
-
-        'unlinked_not_linked': '{usera} and {userb} are not linked.',
-        'unlinked': '{usera} and {userb} are now unlinked.',
-
-        'too_arrogant': 'Uhh, do you want a gold star, {nick}?',
-        'good_job': 'You\'re doing good work, {nick}!',
-
-        'unknown_user_many': (
-            'Neither of the users you specified appear to exist, {nick}.'
-        ),
-        'unknown_user': 'I don\'t know who {for_nick} is, {nick}.',
-        'nope': 'That doesn\'t make much sense now, does it, {nick}.'
-    }
 
     def __init__(self, *args, **kwargs):
         super(KarmaPlugin, self).__init__(*args, **kwargs)
@@ -67,7 +128,7 @@ class KarmaPlugin(Plugin):
         for cmd_name, cmd_re in six.iteritems(self.KARMA_COMMANDS):
             commands[getattr(self, cmd_name)] = re.compile(cmd_re)
         self._compiled_karma_commands = commands
-        self._messages = self.MESSAGES.copy()
+        self._messages = MESSAGES.copy()
         self._messages.update(
             getattr(settings, 'KARMA_MESSAGE_OVERRIDES', {})
         )

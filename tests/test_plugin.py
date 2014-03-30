@@ -8,6 +8,33 @@ import mongomock
 #from helga_karma.plugin import KarmaPlugin
 
 
+class TestNewStylePlugin(TestCase):
+    # Temporary home for tests of the new-style @command plugin
+
+    def setUp(self):
+        self.db_patch = mock.patch(
+            'pymongo.MongoClient',
+            new_callable=lambda: mongomock.Connection
+        )
+        self.db_patch.start()
+        self.addCleanup(self.db_patch.stop)
+
+        from helga_karma import plugin
+        self.plugin = plugin
+
+    def test_give_handles_arrogance(self):
+        ret = self.plugin.give('foo', 'foo')
+        assert ret == "Uhh, do you want a gold star, foo?"
+
+    def test_give(self):
+        with mock.patch.object(self.plugin, 'KarmaRecord') as db:
+            from_user = mock.Mock()
+            to_user = mock.Mock()
+            db.get_for_nick.side_effect = [from_user, to_user]
+
+            from_user.give_karma_to.assertCalledWith(to_user)
+
+
 class TestKarmaPlugin(TestCase):
     def setUp(self):
         super(TestKarmaPlugin, self).setUp()
