@@ -75,11 +75,11 @@ class TestKarmaPluginIntegration(TestCase):
         nick_record = {
             'value': 10.1
         }
-        message = '!k %s' % nick
+        message = '!k for %s' % nick
         self.create_nick(nick, **nick_record)
 
         with mock.patch.object(self.plugin, 'format_message') as fmt_msg:
-            self.plugin.karma(self.client, self.channel, self.nick, message, 'k', [nick])
+            self.plugin.karma(self.client, self.channel, self.nick, message, 'k', ['for', nick])
             fmt_msg.assert_called_with(
                 'info_standard',
                 for_nick=nick,

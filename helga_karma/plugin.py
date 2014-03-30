@@ -194,7 +194,7 @@ def unalias(requested_by, nick1, nick2):
 
 @command('karma', aliases=['k', 't', 'thanks', 'm', 'motivate', 'alias', 'unalias'],
          help=('Give and receive karma. Usage: helga ('
-               'k[arma] [(top [num] | [details [for]] [nick] | [un]alias <nick1> <nick2>)] | '
+               'k[arma] [(top [num] | [details] [for] [nick] | [un]alias <nick1> <nick2>)] | '
                '(t[hanks] | m[otivate]) <nick>)'))
 def karma(client, channel, nick, message, command, args):
     if command in ('t', 'thanks', 'm', 'motivate'):
@@ -223,4 +223,4 @@ def karma(client, channel, nick, message, command, args):
     if subcmd == 'details':
         return info(requested_by=nick, for_nick=args[-1], detailed=True)
 
-    return info(requested_by=nick, for_nick=subcmd)
+    return info(requested_by=nick, for_nick=args[-1])
