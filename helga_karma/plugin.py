@@ -61,11 +61,46 @@ def format_message(name, **kwargs):
     return MESSAGES[name].format(**kwargs)
 
 
-def info():
-    pass
+def info(requested_by, for_nick, detailed=False):
+    """
+    Get karma for a specified user, optionally verbose
+    """
+    record = KarmaRecord.get_for_nick(for_nick)
+
+    if not record.get_value() and not detailed:
+        return format_message(
+            'info_none',
+            for_nick=for_nick,
+            nick=requested_by,
+        )
+
+    if detailed:
+        aliases = record.get_aliases()
+        return format_message(
+            'info_detailed',
+            for_nick=record['nick'],
+            value=round(record.get_value(), 2),
+            given=record['given'],
+            received=record['received'],
+            coefficient=round(record.get_coefficient(), 2),
+            aliases=(
+                ', '.join(aliases)
+                if len(aliases) else 'none'
+            )
+        )
+
+    return format_message(
+        'info_standard',
+        for_nick=for_nick,
+        value=int(round(record.get_value(), 0)),
+        nick=requested_by,
+    )
 
 
 def top(limit=10):
+    """
+    Get the top N users
+    """
     top_n = KarmaRecord.get_top(limit)
     lines = []
     for idx, record in enumerate(top_n):

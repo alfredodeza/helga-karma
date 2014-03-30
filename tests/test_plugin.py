@@ -49,6 +49,40 @@ class TestNewStylePlugin(TestCase):
             assert ret[1] == '#2: bar (2.0 karma)'
             assert ret[2] == '#3: baz (3.0 karma)'
 
+    def test_info_no_previous_karma(self):
+        with mock.patch.object(self.plugin, 'KarmaRecord') as db:
+            record = mock.Mock()
+            record.get_value.return_value = None
+            db.get_for_nick.return_value = record
+
+            retval = self.plugin.info('me', 'foo')
+            assert retval == "I'm not aware of foo having done anything helpful, me."
+
+    def test_info_detailed(self):
+        with mock.patch.object(self.plugin, 'KarmaRecord') as db:
+            record = mock.Mock(nick='foo', given=1, received=2)
+            record.__getitem__ = lambda s, k: getattr(s, k)
+            record.get_value.return_value = 3
+            record.get_coefficient.return_value = 4
+            record.get_aliases.return_value = ['bar', 'baz']
+            db.get_for_nick.return_value = record
+
+            retval = self.plugin.info('me', 'foo', detailed=True)
+            expected = ('foo has 3.0 karma. (thanked others 1 times, '
+                        'received thanks 2 times, karma coefficient 4.0, '
+                        'aliases: bar, baz)')
+            assert retval == expected
+
+    def test_info(self):
+        with mock.patch.object(self.plugin, 'KarmaRecord') as db:
+            record = mock.Mock()
+            record.get_value.return_value = 1
+            db.get_for_nick.return_value = record
+
+            retval = self.plugin.info('me', 'foo')
+            expected = 'foo has about 1 karma, me.'
+            assert retval == expected
+
 
 class TestKarmaPlugin(TestCase):
     def setUp(self):
