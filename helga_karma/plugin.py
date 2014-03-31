@@ -192,7 +192,7 @@ def unalias(requested_by, nick1, nick2):
     return format_message('unlinked', usera=nick1, userb=nick2)
 
 
-@command('karma', aliases=['k', 't', 'thanks', 'm', 'motivate', 'alias', 'unalias'],
+@command('karma', aliases=['k', 'thanks', 'motivate', 't', 'm', 'alias', 'unalias'],
          help=('Give and receive karma. Usage: helga ('
                'k[arma] [(top [num] | [details] [for] [nick] | [un]alias <nick1> <nick2>)] | '
                '(t[hanks] | m[otivate]) <nick>)'))
