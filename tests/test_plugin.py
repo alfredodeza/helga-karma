@@ -9,9 +9,8 @@ import mongomock
 
 
 class TestKarmaPlugin(TestCase):
-    def setUp(self):
-        super(TestKarmaPlugin, self).setUp()
 
+    def setUp(self):
         self.db_patch = mock.patch(
             'pymongo.MongoClient',
             new_callable=lambda: mongomock.Connection
@@ -19,243 +18,164 @@ class TestKarmaPlugin(TestCase):
         self.db_patch.start()
         self.addCleanup(self.db_patch.stop)
 
-        from helga_karma.plugin import KarmaPlugin
-        from helga.db import db
-        self.db = db
-        self.client = None
-        self.channel = None
-        self.nick = 'arbitrary_nick'
-        self.plugin = KarmaPlugin()
+        from helga_karma import plugin
+        self.plugin = plugin
 
-    def test_underscored_nick_matches_info(self):
-        message = '!karma somebody_underscored'
+    def test_give_handles_arrogance(self):
+        ret = self.plugin.give('foo', 'foo')
+        assert ret == "Uhh, do you want a gold star, foo?"
 
-        with mock.patch.object(self.plugin, 'run') as run:
-            self.plugin.process(self.client, self.channel, self.nick, message)
+    def test_give(self):
+        with mock.patch.object(self.plugin, 'KarmaRecord') as db:
+            from_user = mock.Mock()
+            to_user = mock.Mock()
+            db.get_for_nick.side_effect = [from_user, to_user]
 
-            run.assert_called_with(
-                self.channel,
-                self.nick,
-                message,
-                self.plugin.info,
-                {
-                    'detailed': None,
-                    'nick': 'somebody_underscored'
-                }
-            )
+            from_user.give_karma_to.assertCalledWith(to_user)
 
-    def test_dashed_nick_matches_info(self):
-        message = '!karma somebody-dashed'
+    def test_top(self):
+        with mock.patch.object(self.plugin, 'KarmaRecord') as db:
+            getitem = lambda s, k: getattr(s, k)
+            users = [
+                mock.Mock(nick='foo', get_value=lambda: 1, __getitem__=getitem),
+                mock.Mock(nick='bar', get_value=lambda: 2, __getitem__=getitem),
+                mock.Mock(nick='baz', get_value=lambda: 3, __getitem__=getitem),
+            ]
+            db.get_top.return_value = users
+            ret = self.plugin.top()
 
-        with mock.patch.object(self.plugin, 'run') as run:
-            self.plugin.process(self.client, self.channel, self.nick, message)
+            assert ret[0] == '#1: foo (1.0 karma)'
+            assert ret[1] == '#2: bar (2.0 karma)'
+            assert ret[2] == '#3: baz (3.0 karma)'
 
-            run.assert_called_with(
-                self.channel,
-                self.nick,
-                message,
-                self.plugin.info,
-                {
-                    'detailed': None,
-                    'nick': 'somebody-dashed'
-                }
-            )
+    def test_info_no_previous_karma(self):
+        with mock.patch.object(self.plugin, 'KarmaRecord') as db:
+            record = mock.Mock()
+            record.get_value.return_value = None
+            db.get_for_nick.return_value = record
 
-    def test_piped_nick_matches_info(self):
-        message = '!karma somebody|piped'
+            retval = self.plugin.info('me', 'foo')
+            assert retval == "I'm not aware of foo having done anything helpful, me."
 
-        with mock.patch.object(self.plugin, 'run') as run:
-            self.plugin.process(self.client, self.channel, self.nick, message)
+    def test_info_detailed(self):
+        with mock.patch.object(self.plugin, 'KarmaRecord') as db:
+            record = mock.Mock(nick='foo', given=1, received=2)
+            record.__getitem__ = lambda s, k: getattr(s, k)
+            record.get_value.return_value = 3
+            record.get_coefficient.return_value = 4
+            record.get_aliases.return_value = ['bar', 'baz']
+            db.get_for_nick.return_value = record
 
-            run.assert_called_with(
-                self.channel,
-                self.nick,
-                message,
-                self.plugin.info,
-                {
-                    'detailed': None,
-                    'nick': 'somebody|piped'
-                }
-            )
+            retval = self.plugin.info('me', 'foo', detailed=True)
+            expected = ('foo has 3.0 karma. (thanked others 1 times, '
+                        'received thanks 2 times, karma coefficient 4.0, '
+                        'aliases: bar, baz)')
+            assert retval == expected
 
-    def test_long_form_request_matches_nick(self):
-        message = '!karma details for somebody'
+    def test_info(self):
+        with mock.patch.object(self.plugin, 'KarmaRecord') as db:
+            record = mock.Mock()
+            record.get_value.return_value = 1
+            db.get_for_nick.return_value = record
 
-        with mock.patch.object(self.plugin, 'run') as run:
-            self.plugin.process(self.client, self.channel, self.nick, message)
+            retval = self.plugin.info('me', 'foo')
+            expected = 'foo has about 1 karma, me.'
+            assert retval == expected
 
-            run.assert_called_with(
-                self.channel,
-                self.nick,
-                message,
-                self.plugin.info,
-                {
-                    'detailed': 'details',
-                    'nick': 'somebody'
-                }
-            )
+    def test_alias_nope_with_same_nick(self):
+        with mock.patch.object(self.plugin, 'KarmaRecord') as db:
+            db.get_for_nick.side_effect = [
+                {'nick': 'foo'},
+                {'nick': 'foo'},
+            ]
 
-    def test_short_form_request_matches_nick(self):
-        message = '!k'
+            retval = self.plugin.alias('me', 'foo', 'foo')
+            assert retval == "That doesn't make much sense now, does it, me."
 
-        with mock.patch.object(self.plugin, 'run') as run:
-            self.plugin.process(self.client, self.channel, self.nick, message)
+    def test_alias_prefers_user_with_highest_value(self):
+        with mock.patch.object(self.plugin, 'KarmaRecord') as db:
+            user1 = mock.Mock(nick='foo', value=1)
+            user2 = mock.Mock(nick='bar', value=5)
 
-            run.assert_called_with(
-                self.channel,
-                self.nick,
-                message,
-                self.plugin.info,
-                {
-                    'detailed': None,
-                    'nick': None
-                }
-            )
+            getter = lambda s, k: getattr(s, k)
+            user1.__getitem__ = getter
+            user2.__getitem__ = getter
 
-    def test_top_match(self):
-        message = '!karma top 10'
+            db.get_for_nick.side_effect = [user1, user2]
 
-        with mock.patch.object(self.plugin, 'run') as run:
-            self.plugin.process(self.client, self.channel, self.nick, message)
+            self.plugin.alias('me', 'foo', 'bar')
+            user2.add_alias.assertCalledWith(user1)
 
-            run.assert_called_with(
-                self.channel,
-                self.nick,
-                message,
-                self.plugin.top,
-                {
-                    'count': '10'
-                }
-            )
+    def test_alias(self):
+        with mock.patch.object(self.plugin, 'KarmaRecord') as db:
+            user1 = mock.Mock(nick='foo', value=1)
+            user2 = mock.Mock(nick='bar', value=1)
 
-    def test_link_spaces(self):
-        message = '!karma usera == userb'
+            getter = lambda s, k: getattr(s, k)
+            user1.__getitem__ = getter
+            user2.__getitem__ = getter
 
-        with mock.patch.object(self.plugin, 'run') as run:
-            self.plugin.process(self.client, self.channel, self.nick, message)
+            db.get_for_nick.side_effect = [user1, user2]
 
-            run.assert_called_with(
-                self.channel,
-                self.nick,
-                message,
-                self.plugin.link,
-                {
-                    'usera': 'usera',
-                    'userb': 'userb',
-                }
-            )
+            self.plugin.alias('me', 'foo', 'bar')
+            user1.add_alias.assertCalledWith(user2)
 
-    def test_link_spaceless(self):
-        message = '!karma usera==userb'
+    def test_unalias_nope_with_same_nick(self):
+        with mock.patch.object(self.plugin, 'KarmaRecord') as db:
+            db.get_for_nick.side_effect = [
+                {'nick': 'foo'},
+                {'nick': 'foo'},
+            ]
 
-        with mock.patch.object(self.plugin, 'run') as run:
-            self.plugin.process(self.client, self.channel, self.nick, message)
+            retval = self.plugin.unalias('me', 'foo', 'foo')
+            assert retval == "That doesn't make much sense now, does it, me."
 
-            run.assert_called_with(
-                self.channel,
-                self.nick,
-                message,
-                self.plugin.link,
-                {
-                    'usera': 'usera',
-                    'userb': 'userb',
-                }
-            )
+    def test_unalias_no_records(self):
+        with mock.patch.object(self.plugin, 'KarmaRecord') as db:
+            db.get_for_nick.side_effect = [None, None]
+            retval = self.plugin.unalias('me', 'foo', 'bar')
+            assert retval == "Neither of the users you specified appear to exist, me."
 
-    def test_unlink_spaces(self):
-        message = '!karma usera != userb'
+    def test_unalias_non_linked_users(self):
+        with mock.patch.object(self.plugin, 'KarmaRecord') as db:
+            user1 = mock.Mock()
+            user2 = mock.Mock()
 
-        with mock.patch.object(self.plugin, 'run') as run:
-            self.plugin.process(self.client, self.channel, self.nick, message)
+            user2.get_aliases.return_value = ['bar']
 
-            run.assert_called_with(
-                self.channel,
-                self.nick,
-                message,
-                self.plugin.unlink,
-                {
-                    'usera': 'usera',
-                    'userb': 'userb',
-                }
-            )
+            db.get_for_nick.side_effect = [user1, user2]
 
-    def test_unlink_spaceless(self):
-        message = '!karma usera!=userb'
+            retval = self.plugin.unalias('me', 'foo', 'bar')
+            assert retval == "foo and bar are not linked."
 
-        with mock.patch.object(self.plugin, 'run') as run:
-            self.plugin.process(self.client, self.channel, self.nick, message)
+    def test_unalias(self):
+        with mock.patch.object(self.plugin, 'KarmaRecord') as db:
+            user1 = mock.Mock()
+            user2 = mock.Mock()
 
-            run.assert_called_with(
-                self.channel,
-                self.nick,
-                message,
-                self.plugin.unlink,
-                {
-                    'usera': 'usera',
-                    'userb': 'userb',
-                }
-            )
+            user2.get_aliases.return_value = ['bar']
 
-    def test_motivate(self):
-        message = '!motivate somebody'
+            db.get_for_nick.side_effect = [None, user2]
 
-        with mock.patch.object(self.plugin, 'run') as run:
-            self.plugin.process(self.client, self.channel, self.nick, message)
+            user2.remove_alias.assertCalledWith(user1)
 
-            run.assert_called_with(
-                self.channel,
-                self.nick,
-                message,
-                self.plugin.give,
-                {
-                    'nick': 'somebody',
-                }
-            )
+    @mock.patch('helga_karma.plugin.settings')
+    def test_message_overrides(self, settings):
+        overridden_message = 'info_standard'
+        not_overridden_message = 'linked'
 
-    def test_motivate_short(self):
-        message = '!m somebody'
+        settings.KARMA_MESSAGE_OVERRIDES = {
+            overridden_message: "Arbitrary Message"
+        }
+        from helga_karma.plugin import format_message, MESSAGES
 
-        with mock.patch.object(self.plugin, 'run') as run:
-            self.plugin.process(self.client, self.channel, self.nick, message)
+        kwargs = {'main': 'foo', 'secondary': 'bar'}
 
-            run.assert_called_with(
-                self.channel,
-                self.nick,
-                message,
-                self.plugin.give,
-                {
-                    'nick': 'somebody',
-                }
-            )
-
-    def test_thanks(self):
-        message = '!thanks somebody'
-
-        with mock.patch.object(self.plugin, 'run') as run:
-            self.plugin.process(self.client, self.channel, self.nick, message)
-
-            run.assert_called_with(
-                self.channel,
-                self.nick,
-                message,
-                self.plugin.give,
-                {
-                    'nick': 'somebody',
-                }
-            )
-
-    def test_thanks_short(self):
-        message = '!t somebody'
-
-        with mock.patch.object(self.plugin, 'run') as run:
-            self.plugin.process(self.client, self.channel, self.nick, message)
-
-            run.assert_called_with(
-                self.channel,
-                self.nick,
-                message,
-                self.plugin.give,
-                {
-                    'nick': 'somebody',
-                }
-            )
+        self.assertEqual(
+            format_message(not_overridden_message, **kwargs),
+            MESSAGES[not_overridden_message].format(**kwargs)
+        )
+        self.assertEqual(
+            format_message(overridden_message),
+            settings.KARMA_MESSAGE_OVERRIDES[overridden_message]
+        )

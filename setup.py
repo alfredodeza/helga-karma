@@ -31,7 +31,7 @@ setup(
     packages=find_packages(),
     entry_points={
         'helga_plugins': [
-            'karma = helga_karma.plugin:KarmaPlugin',
+            'karma = helga_karma.plugin:karma',
         ]
     },
     install_requires=requirements,

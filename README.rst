@@ -76,7 +76,7 @@ Example::
            #3: whoisthis (1408 karma)
     person> Not me :-(
 
-``!k[arma] <nick1>==<nick2>``
+``!k[arma] alias <nick1> <nick2>``
 +++++++++++++++++++++++++++++
 
 Link two nicknames together to share the same karma values.  This is commonly
@@ -87,7 +87,7 @@ Example::
     person> !karma coddingtonbear==coddingtonbear_away
     helga>  coddingtonbear and coddingtonbear_away are now linked, person.
 
-``!k[arma] <nick1>!=<nick2>``
+``!k[arma] unalias <nick1> <nick2>``
 +++++++++++++++++++++++++++++
 
 Unlink two nicknames from one another.
@@ -104,7 +104,7 @@ Settings
 ``KARMA_MESSAGE_OVERRIDES``
 +++++++++++++++++++++++++++
 
-You can override the existing messages by adding dictionary entries to 
+You can override the existing messages by adding dictionary entries to
 this dictionary matching the name of existing messages.
 See ``helga_karma.plugin.MESSAGES`` for existing messages.
 
@@ -143,7 +143,7 @@ following setting::
 Set this to a 2-tuple of values between which all users' karma should be
 continuously distributed.
 
-To make helga-karma behave more like MeowMeowBeenz (in which all 
+To make helga-karma behave more like MeowMeowBeenz (in which all
 users have karma values ranging between one and five), you could
 add the following setting::
 
