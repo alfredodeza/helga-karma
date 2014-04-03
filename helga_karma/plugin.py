@@ -1,12 +1,15 @@
 import six
 
 from helga import log, settings
-from helga.plugins import command
+from helga.plugins import command, match
 
 from .data import KarmaRecord
 
 
 logger = log.getLogger(__name__)
+
+
+VALID_NICK_PAT = r'[\w{}\[\]\-|^`\\]+'
 
 
 MESSAGES = {
@@ -192,11 +195,10 @@ def unalias(requested_by, nick1, nick2):
     return format_message('unlinked', usera=nick1, userb=nick2)
 
 
-@command('karma', aliases=['k', 't', 'thanks', 'm', 'motivate', 'alias', 'unalias'],
-         help=('Give and receive karma. Usage: helga ('
-               'k[arma] [(top [num] | [details] [for] [nick] | [un]alias <nick1> <nick2>)] | '
-               '(t[hanks] | m[otivate]) <nick>)'))
-def karma(client, channel, nick, message, command, args):
+def _handle_command(client, channel, nick, message, command, args):
+    """
+    The command variant of this plugin
+    """
     if command in ('t', 'thanks', 'm', 'motivate'):
         return give(from_nick=nick, to_nick=args[0])
 
@@ -224,3 +226,20 @@ def karma(client, channel, nick, message, command, args):
         return info(requested_by=nick, for_nick=args[-1], detailed=True)
 
     return info(requested_by=nick, for_nick=args[-1])
+
+
+def _handle_match(client, channel, nick, message, matches):
+    to_nick = matches[0]
+    logger.info('Autokarma: {from_nick} -> {to_nick}'.format(from_nick=nick,
+                                                             to_nick=to_nick))
+    give(from_nick=nick, to_nick=to_nick)
+
+
+@match(r'^thanks ({nick})'.format(nick=VALID_NICK_PAT))
+@command('karma', aliases=['k', 't', 'thanks', 'm', 'motivate', 'alias', 'unalias'],
+         help=('Give and receive karma. Usage: helga ('
+               'k[arma] [(top [num] | [details] [for] [nick] | [un]alias <nick1> <nick2>)] | '
+               '(t[hanks] | m[otivate]) <nick>)'))
+def karma(client, channel, nick, message, *args):
+    fn = _handle_command if len(args) == 2 else _handle_match
+    return fn(client, channel, nick, message, *args)
