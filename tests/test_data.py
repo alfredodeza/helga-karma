@@ -1,4 +1,5 @@
 import datetime
+import math
 from unittest import TestCase
 
 import mock
@@ -233,6 +234,28 @@ class TestKarmaRecord(TestCase):
         self.assertEqual(actual_result, expected_result)
 
     @mock.patch('helga_karma.data.settings')
+    def test_get_value_scaled_linear(self, settings):
+        karma_maximum = 5
+        karma_minimum = 1
+        maximum_user_value = 104.24
+        active_user_value = 60.12
+
+        settings.KARMA_SCALED_RANGE = (karma_minimum, karma_maximum, )
+        settings.KARMA_SCALE_LINEAR = True
+        self._get_karma_record('alpha', value=maximum_user_value)
+        user = self._get_karma_record('beta', value=active_user_value)
+
+        expected_result = (
+            (
+                (active_user_value / maximum_user_value)
+                * (karma_maximum - karma_minimum)
+            ) + karma_minimum
+        )
+        actual_result = user.get_value()
+
+        self.assertEqual(actual_result, expected_result)
+
+    @mock.patch('helga_karma.data.settings')
     def test_get_value_scaled(self, settings):
         karma_maximum = 5
         karma_minimum = 1
@@ -240,12 +263,13 @@ class TestKarmaRecord(TestCase):
         active_user_value = 60.12
 
         settings.KARMA_SCALED_RANGE = (karma_minimum, karma_maximum, )
+        settings.KARMA_SCALE_LINEAR = False
         self._get_karma_record('alpha', value=maximum_user_value)
         user = self._get_karma_record('beta', value=active_user_value)
 
         expected_result = (
             (
-                (active_user_value / maximum_user_value)
+                math.log(active_user_value + 1, maximum_user_value + 1)
                 * (karma_maximum - karma_minimum)
             ) + karma_minimum
         )

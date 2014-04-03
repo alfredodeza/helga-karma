@@ -1,4 +1,5 @@
 import datetime
+import math
 import sys
 
 import pymongo
@@ -159,8 +160,15 @@ class KarmaRecord(object):
         if maximum_karma == 0:
             return 0
 
+        if getattr(settings, 'KARMA_SCALE_LINEAR'):
+            # Linearly scale karma
+            percentage = my_karma / maximum_karma
+        else:
+            # Logarithmically scale karma
+            percentage = math.log(my_karma + 1, maximum_karma + 1)
+
         return (
-            (my_karma / maximum_karma) * (output_scale_max - output_scale_min)
+            percentage * (output_scale_max - output_scale_min)
         ) + output_scale_min
 
     def get_coefficient(self):

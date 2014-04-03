@@ -148,3 +148,13 @@ users have karma values ranging between one and five), you could
 add the following setting::
 
     KARMA_SCALED_RANGE=(1, 5)
+
+
+``KARMA_SCALE_LINEAR``
+++++++++++++++++++++++
+
+Set this to a truthy value to scale karma linearly.  By default, karma will
+be scaled logarithmically across the range::
+
+    KARMA_SCALE_LINEAR=True
+
