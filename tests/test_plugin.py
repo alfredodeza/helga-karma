@@ -179,3 +179,12 @@ class TestKarmaPlugin(TestCase):
             format_message(overridden_message),
             settings.KARMA_MESSAGE_OVERRIDES[overridden_message]
         )
+
+    def test_autokarma_match(self):
+        matcher = self.plugin._autokarma_match
+
+        assert 'helga' == matcher('thanks, helga')[0][1]
+        assert 'helga' == matcher('TYVM helga!')[0][1]
+        assert 'helga' == matcher('ty helga. i needed that reminder')[0][1]
+
+        assert not matcher('i appreciate it helga')
