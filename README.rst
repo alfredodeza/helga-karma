@@ -158,3 +158,11 @@ be scaled logarithmically across the range::
 
     KARMA_SCALE_LINEAR=True
 
+
+``KARMA_THANKS_WORDS``
+++++++++++++++++++++++
+
+Set this to a list of "thanks" words that will be used for automatic karma.
+This will mean that messages like ``thanks helga`` or ``tyvm helga`` will
+both give automatic karma. Default values for this are: 'thank you', 'thanks',
+'tyvm', and 'ty'.
