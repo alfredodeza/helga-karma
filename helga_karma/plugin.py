@@ -1,3 +1,4 @@
+import re
 import six
 
 from helga import log, settings
@@ -46,6 +47,14 @@ MESSAGES = {
     'unknown_user': 'I don\'t know who {for_nick} is, {nick}.',
     'nope': 'That doesn\'t make much sense now, does it, {nick}.'
 }
+
+
+_DEFAULT_THANKS_WORDS = [
+    'thank you',
+    'thanks',
+    'tyvm',
+    'ty',
+]
 
 
 def format_message(name, **kwargs):
@@ -229,13 +238,29 @@ def _handle_command(client, channel, nick, message, command, args):
 
 
 def _handle_match(client, channel, nick, message, matches):
-    to_nick = matches[0]
+    to_nick = matches[0][1]
     logger.info('Autokarma: {from_nick} -> {to_nick}'.format(from_nick=nick,
                                                              to_nick=to_nick))
     give(from_nick=nick, to_nick=to_nick)
 
 
-@match(r'^thanks ({nick})'.format(nick=VALID_NICK_PAT))
+def _autokarma_match(message):
+    """
+    Match an incoming message for any nicks that should receive auto karma
+    """
+    thanks_words = getattr(settings,
+                           'KARMA_THANKS_WORDS',
+                           _DEFAULT_THANKS_WORDS)
+
+    pattern = r'^(?i)({thanks})[^\w]+({nick}).*$'.format(
+        thanks='|'.join(thanks_words),
+        nick=VALID_NICK_PAT
+    )
+
+    return re.findall(pattern, message)
+
+
+@match(_autokarma_match)
 @command('karma', aliases=['k', 'thanks', 'motivate', 't', 'm', 'alias', 'unalias'],
          help=('Give and receive karma. Usage: helga ('
                'k[arma] [(top [num] | [details] [for] [nick] | [un]alias <nick1> <nick2>)] | '
