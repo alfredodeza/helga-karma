@@ -26,6 +26,8 @@ class TestKarmaPlugin(object):
             to_user = mock.Mock()
             db.get_for_nick.side_effect = [from_user, to_user]
 
+            self.plugin.give('foo', 'bar')
+
             from_user.give_karma_to.assert_called_with(to_user)
 
     def test_top(self):
@@ -145,14 +147,15 @@ class TestKarmaPlugin(object):
 
     def test_unalias(self):
         with mock.patch.object(self.plugin, 'KarmaRecord') as db:
-            user1 = mock.Mock()
             user2 = mock.Mock()
 
             user2.get_aliases.return_value = ['bar']
 
             db.get_for_nick.side_effect = [None, user2]
 
-            user2.remove_alias.assert_called_with(user1)
+            self.plugin.unalias(requested_by='me', nick1='bar', nick2='foo')
+
+            user2.remove_alias.assert_called_with('bar')
 
     @mock.patch('helga_karma.plugin.settings')
     def test_message_not_overridden(self, settings):
