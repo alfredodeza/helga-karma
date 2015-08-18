@@ -56,6 +56,12 @@ _DEFAULT_THANKS_WORDS = [
     'ty',
 ]
 
+_DEFAULT_INVALID_WORDS = [
+    'i',
+    'for',
+]
+
+
 
 def format_message(name, **kwargs):
     overrides = getattr(settings, 'KARMA_MESSAGE_OVERRIDES', {})
@@ -248,9 +254,20 @@ def _autokarma_match(message):
     """
     Match an incoming message for any nicks that should receive auto karma
     """
+    invalid_thanks = getattr(settings,
+                             'KARMA_INVALID_THANKS',
+                             _DEFAULT_INVALID_WORDS)
+
     thanks_words = getattr(settings,
                            'KARMA_THANKS_WORDS',
                            _DEFAULT_THANKS_WORDS)
+
+    skip_pattern = r'^(?i)({thanks})\s+({invalid}).*$'.format(
+        thanks='|'.join(thanks_words),
+        invalid='|'.join(invalid_thanks),
+    )
+    if re.findall(skip_pattern, message):
+        return None
 
     pattern = r'^(?i)({thanks})[^\w]+({nick}).*$'.format(
         thanks='|'.join(thanks_words),
