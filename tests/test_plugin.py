@@ -1,5 +1,3 @@
-from unittest import TestCase
-
 import mock
 import mongomock
 
@@ -8,15 +6,12 @@ import mongomock
 #from helga_karma.plugin import KarmaPlugin
 
 
-class TestKarmaPlugin(TestCase):
+class TestKarmaPlugin(object):
 
-    def setUp(self):
-        self.db_patch = mock.patch(
-            'pymongo.MongoClient',
-            new_callable=lambda: mongomock.Connection
-        )
-        self.db_patch.start()
-        self.addCleanup(self.db_patch.stop)
+    def setup(self):
+        from _pytest.monkeypatch import monkeypatch
+        patch = monkeypatch()
+        patch.setattr('pymongo.MongoClient', mongomock.Connection)
 
         from helga_karma import plugin
         self.plugin = plugin
@@ -31,7 +26,7 @@ class TestKarmaPlugin(TestCase):
             to_user = mock.Mock()
             db.get_for_nick.side_effect = [from_user, to_user]
 
-            from_user.give_karma_to.assertCalledWith(to_user)
+            from_user.give_karma_to.assert_called_with(to_user)
 
     def test_top(self):
         with mock.patch.object(self.plugin, 'KarmaRecord') as db:
@@ -104,7 +99,7 @@ class TestKarmaPlugin(TestCase):
             db.get_for_nick.side_effect = [user1, user2]
 
             self.plugin.alias('me', 'foo', 'bar')
-            user2.add_alias.assertCalledWith(user1)
+            user2.add_alias.assert_called_with(user1)
 
     def test_alias(self):
         with mock.patch.object(self.plugin, 'KarmaRecord') as db:
@@ -118,7 +113,7 @@ class TestKarmaPlugin(TestCase):
             db.get_for_nick.side_effect = [user1, user2]
 
             self.plugin.alias('me', 'foo', 'bar')
-            user1.add_alias.assertCalledWith(user2)
+            user1.add_alias.assert_called_with(user2)
 
     def test_unalias_nope_with_same_nick(self):
         with mock.patch.object(self.plugin, 'KarmaRecord') as db:
@@ -157,10 +152,10 @@ class TestKarmaPlugin(TestCase):
 
             db.get_for_nick.side_effect = [None, user2]
 
-            user2.remove_alias.assertCalledWith(user1)
+            user2.remove_alias.assert_called_with(user1)
 
     @mock.patch('helga_karma.plugin.settings')
-    def test_message_overrides(self, settings):
+    def test_message_not_overridden(self, settings):
         overridden_message = 'info_standard'
         not_overridden_message = 'linked'
 
@@ -171,14 +166,23 @@ class TestKarmaPlugin(TestCase):
 
         kwargs = {'main': 'foo', 'secondary': 'bar'}
 
-        self.assertEqual(
-            format_message(not_overridden_message, **kwargs),
-            MESSAGES[not_overridden_message].format(**kwargs)
-        )
-        self.assertEqual(
-            format_message(overridden_message),
-            settings.KARMA_MESSAGE_OVERRIDES[overridden_message]
-        )
+        result = format_message(not_overridden_message, **kwargs)
+        expected = MESSAGES[not_overridden_message].format(**kwargs)
+
+        assert result == expected
+
+    @mock.patch('helga_karma.plugin.settings')
+    def test_message_karma_overridden(self, settings):
+        overridden_message = 'info_standard'
+
+        settings.KARMA_MESSAGE_OVERRIDES = {
+            overridden_message: "Arbitrary Message"
+        }
+        from helga_karma.plugin import format_message
+
+        result = format_message(overridden_message)
+        expected = settings.KARMA_MESSAGE_OVERRIDES[overridden_message]
+        assert result == expected
 
     def test_autokarma_match(self):
         matcher = self.plugin._autokarma_match
