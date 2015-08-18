@@ -18,8 +18,9 @@ class KarmaRecord(object):
 
     @classmethod
     def get_actual_nick(cls, nick):
-        if nick.find('|'):
-            nick = nick.split('|')[0]
+        nick = nick.split('|')[0]
+        if nick.endswith('++'):
+            nick = nick.split('+')[0]
         record = db.karma_link.find_one(
             {'nick': nick}
         )
