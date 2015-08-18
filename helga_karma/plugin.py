@@ -256,8 +256,8 @@ def _autokarma_match(message):
         thanks='|'.join(thanks_words),
         nick=VALID_NICK_PAT
     )
-
-    return re.findall(pattern, message)
+    pp_pattern = r'(\w*\s+)*({nick})\+\+(\s+|$).*$'.format(nick=VALID_NICK_PAT)
+    return re.findall(pattern, message) or re.findall(pp_pattern, message)
 
 
 @match(_autokarma_match)
