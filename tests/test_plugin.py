@@ -201,19 +201,19 @@ class TestPlusPlusSupport(TestKarmaPlugin):
 
     def test_autokarma_match_nick_alone(self):
         matcher = self.plugin._autokarma_match
-        assert 'helga' == matcher('helga++')[0][1]
+        assert 'helga++' == matcher('helga++')[0][1]
 
     def test_autokarma_match_nick_leading_whitespace(self):
         matcher = self.plugin._autokarma_match
-        assert 'helga' == matcher(' helga++')[0][1]
+        assert 'helga++' == matcher(' helga++')[0][1]
 
     def test_autokarma_match_leading_text_matches(self):
         matcher = self.plugin._autokarma_match
-        assert 'helga' == matcher('you are doing great helga++')[0][1]
+        assert 'helga++' == matcher('you are doing great helga++')[0][1]
 
     def test_autokarma_match_trailing_text_matches(self):
         matcher = self.plugin._autokarma_match
-        assert 'helga' == matcher('you are doing great helga++ fantastic job there')[0][1]
+        assert 'helga++' == matcher('you are doing great helga++ fantastic job there')[0][1]
 
     def test_autokarma_no_match_trailing_garbage(self):
         matcher = self.plugin._autokarma_match
