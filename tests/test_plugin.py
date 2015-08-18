@@ -210,4 +210,16 @@ class TestPlusPlusSupport(TestKarmaPlugin):
 
     def test_autokarma_no_match_trailing_garbage(self):
         matcher = self.plugin._autokarma_match
-        assert matcher('helga++burrrr') is None
+        assert matcher('helga++burrrr') == []
+
+
+class TestInvalidWords(TestKarmaPlugin):
+    # if py.test fixtures get used, they should be in place for these
+    # tests to get all combinations of `thanks` that the plugin supports
+    def test_default_for_does_not_match(self):
+        matcher = self.plugin._autokarma_match
+        assert matcher('thanks for helping out') is None
+
+    def test_default_i_does_not_match(self):
+        matcher = self.plugin._autokarma_match
+        assert matcher('thanks I was able to fix it') is None
