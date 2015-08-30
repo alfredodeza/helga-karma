@@ -1,6 +1,5 @@
 import datetime
 import math
-from unittest import TestCase
 
 import mock
 import mongomock
@@ -10,16 +9,12 @@ import mongomock
 #from helga_karma.data import KarmaRecord
 
 
-class TestKarmaRecord(TestCase):
-    def setUp(self):
-        super(TestKarmaRecord, self).setUp()
+class TestKarmaRecord(object):
 
-        self.db_patch = mock.patch(
-            'pymongo.MongoClient',
-            new_callable=lambda: mongomock.Connection
-        )
-        self.db_patch.start()
-        self.addCleanup(self.db_patch.stop)
+    def setup(self):
+        from _pytest.monkeypatch import monkeypatch
+        patch = monkeypatch()
+        patch.setattr('pymongo.MongoClient', mongomock.Connection)
 
         from helga_karma.data import KarmaRecord
         from helga.db import db
@@ -33,7 +28,7 @@ class TestKarmaRecord(TestCase):
         record.save()
         return record
 
-    def tearDown(self):
+    def teardown(self):
         self.db.karma_user.drop()
         self.db.karma_link.drop()
 
@@ -52,7 +47,7 @@ class TestKarmaRecord(TestCase):
         actual_result = k.get_actual_nick(arbitrary_alias)
         expected_result = arbitrary_nick
 
-        self.assertEqual(actual_result, expected_result)
+        assert actual_result == expected_result
 
     def test_get_nick_with_pipe(self):
         arbitrary_nick = 'somebody|away'
@@ -61,7 +56,15 @@ class TestKarmaRecord(TestCase):
         actual_result = k.get_actual_nick(arbitrary_nick)
         expected_result = arbitrary_nick.split('|')[0]
 
-        self.assertEqual(actual_result, expected_result)
+        assert actual_result == expected_result
+
+    def test_get_nick_with_plus_plus(self):
+        arbitrary_nick = 'somebody++'
+
+        k = self.KarmaRecord({})
+        result = k.get_actual_nick(arbitrary_nick)
+
+        assert result == 'somebody'
 
     def test_get_actual_nick_no_alias(self):
         arbitrary_nick = 'two'
@@ -70,7 +73,7 @@ class TestKarmaRecord(TestCase):
         actual_result = k.get_actual_nick(arbitrary_nick)
         expected_result = arbitrary_nick
 
-        self.assertEqual(actual_result, expected_result)
+        assert actual_result == expected_result
 
     def test_get_for_nick_existing(self):
         existing_nick = 'alpha'
@@ -82,15 +85,12 @@ class TestKarmaRecord(TestCase):
         self.db.karma_user.insert(arbitrary_record)
 
         k = self.KarmaRecord.get_for_nick(existing_nick)
-        self.assertEqual(
-            k['given'],
-            arbitrary_given,
-        )
+        assert k['given'] == arbitrary_given
 
     def test_get_for_nick_new(self):
         non_existing_nick = 'beta'
         k = self.KarmaRecord.get_for_nick(non_existing_nick)
-        self.assertEqual(k['given'], 0)
+        assert k['given'] == 0
 
     def test_get_top(self):
         first = {'nick': 'three', 'value': 15.0}
@@ -101,9 +101,9 @@ class TestKarmaRecord(TestCase):
         self.db.karma_user.insert(first)
 
         expected_results = list(self.KarmaRecord.get_top(limit=2))
-        self.assertEquals(expected_results[0]['nick'], first['nick'])
-        self.assertEquals(expected_results[1]['nick'], second['nick'])
-        self.assertEquals(len(expected_results), 2)
+        assert expected_results[0]['nick'] == first['nick']
+        assert expected_results[1]['nick'] == second['nick']
+        assert len(expected_results) == 2
 
     def test_add_alias(self):
         main_nick = 'one'
@@ -126,10 +126,10 @@ class TestKarmaRecord(TestCase):
 
         actual_result = self.KarmaRecord.get_for_nick(alias_nick)
 
-        self.assertEquals(actual_result['nick'], main_nick)
-        self.assertEquals(actual_result['value'], 20)
-        self.assertEquals(actual_result['given'], 20)
-        self.assertEquals(actual_result['received'], 20)
+        assert actual_result['nick'] == main_nick
+        assert actual_result['value'] == 20
+        assert actual_result['given'] == 20
+        assert actual_result['received'] == 20
 
     def test_remove_alias(self):
         main_nick = 'three'
@@ -162,10 +162,10 @@ class TestKarmaRecord(TestCase):
         main_record = self.KarmaRecord.get_for_nick(main_nick)
         alias_record = self.KarmaRecord.get_for_nick(alias_nick)
 
-        self.assertEquals(main_record['nick'], main_nick)
-        self.assertEquals(main_record['value'], 10)
-        self.assertEquals(alias_record['nick'], alias_nick)
-        self.assertEquals(alias_record['value'], 10)
+        assert main_record['nick'] == main_nick
+        assert main_record['value'] == 10
+        assert alias_record['nick'] == alias_nick
+        assert alias_record['value'] == 10
 
     def test_get_aliases(self):
         main_nick = 'beta'
@@ -181,7 +181,7 @@ class TestKarmaRecord(TestCase):
         actual_results = set(main_record.get_aliases())
         expected_results = set([alias_nick1, alias_nick2])
 
-        self.assertEquals(actual_results, expected_results)
+        assert actual_results == expected_results
 
     @mock.patch('helga_karma.data.KarmaRecord.get_coefficient')
     def test_give_karma_to(self, get_coefficient_mock):
@@ -206,9 +206,9 @@ class TestKarmaRecord(TestCase):
 
         from_record.give_karma_to(to_record)
 
-        self.assertEquals(from_record['given'], 11)
-        self.assertEquals(to_record['received'], 11)
-        self.assertEquals(to_record['value'], 11)
+        assert from_record['given'] == 11
+        assert to_record['received'] == 11
+        assert to_record['value'] == 11
 
     def test_get_global_karma_maximum(self):
         maximum_value = 30
@@ -222,7 +222,7 @@ class TestKarmaRecord(TestCase):
         expected_value = maximum_value
         actual_value = self.KarmaRecord.get_global_karma_maximum()
 
-        self.assertEqual(actual_value, expected_value)
+        assert actual_value == expected_value
 
     def test_get_value_unscaled(self):
         karma_value = 223.210
@@ -231,7 +231,7 @@ class TestKarmaRecord(TestCase):
         expected_result = karma_value
         actual_result = record.get_value()
 
-        self.assertEqual(actual_result, expected_result)
+        assert actual_result == expected_result
 
     @mock.patch('helga_karma.data.settings')
     def test_get_value_scaled_linear(self, settings):
@@ -253,7 +253,7 @@ class TestKarmaRecord(TestCase):
         )
         actual_result = user.get_value()
 
-        self.assertEqual(actual_result, expected_result)
+        assert actual_result == expected_result
 
     @mock.patch('helga_karma.data.settings')
     def test_get_value_scaled(self, settings):
@@ -275,4 +275,4 @@ class TestKarmaRecord(TestCase):
         )
         actual_result = user.get_value()
 
-        self.assertEqual(actual_result, expected_result)
+        assert actual_result == expected_result

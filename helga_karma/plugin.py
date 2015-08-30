@@ -56,6 +56,12 @@ _DEFAULT_THANKS_WORDS = [
     'ty',
 ]
 
+_DEFAULT_INVALID_WORDS = [
+    'i',
+    'for',
+]
+
+
 
 def format_message(name, **kwargs):
     overrides = getattr(settings, 'KARMA_MESSAGE_OVERRIDES', {})
@@ -238,26 +244,40 @@ def _handle_command(client, channel, nick, message, command, args):
 
 
 def _handle_match(client, channel, nick, message, matches):
-    to_nick = matches[0][1]
+    is_pp = matches[0][1].endswith('++')
+    to_nick = matches[0][1].split('++')[0]
     logger.info('Autokarma: {from_nick} -> {to_nick}'.format(from_nick=nick,
                                                              to_nick=to_nick))
-    give(from_nick=nick, to_nick=to_nick)
+    karma_given = give(from_nick=nick, to_nick=to_nick)
+    if is_pp:
+        return karma_given
 
 
 def _autokarma_match(message):
     """
     Match an incoming message for any nicks that should receive auto karma
     """
+    invalid_thanks = getattr(settings,
+                             'KARMA_INVALID_THANKS',
+                             _DEFAULT_INVALID_WORDS)
+
     thanks_words = getattr(settings,
                            'KARMA_THANKS_WORDS',
                            _DEFAULT_THANKS_WORDS)
+
+    skip_pattern = r'^(?i)({thanks})\s+({invalid}).*$'.format(
+        thanks='|'.join(thanks_words),
+        invalid='|'.join(invalid_thanks),
+    )
+    if re.findall(skip_pattern, message):
+        return None
 
     pattern = r'^(?i)({thanks})[^\w]+({nick}).*$'.format(
         thanks='|'.join(thanks_words),
         nick=VALID_NICK_PAT
     )
-
-    return re.findall(pattern, message)
+    pp_pattern = r'(\w*\s+)*({nick}\+\+)(\s+|$).*$'.format(nick=VALID_NICK_PAT)
+    return re.findall(pattern, message) or re.findall(pp_pattern, message)
 
 
 @match(_autokarma_match)
