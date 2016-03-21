@@ -219,6 +219,10 @@ class TestPlusPlusSupport(TestKarmaPlugin):
         matcher = self.plugin._autokarma_match
         assert matcher('helga++burrrr') == []
 
+    def test_autokarma_no_match_cpp(self):
+        matcher = self.plugin._autokarma_match
+        assert matcher('I love programming in C++') == []
+
 
 class TestInvalidWords(TestKarmaPlugin):
     # if py.test fixtures get used, they should be in place for these

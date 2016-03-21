@@ -111,6 +111,8 @@ syntax, which does the same thing as ``!t`` or ``!m``::
     person>   youthere++
     helga>    You're doing good work, youthere!
 
+(The words "c++" and "C++" are blacklisted to avoid false positives.)
+
 
 Settings
 --------
