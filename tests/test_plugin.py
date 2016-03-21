@@ -11,7 +11,7 @@ class TestKarmaPlugin(object):
     def setup(self):
         from _pytest.monkeypatch import monkeypatch
         patch = monkeypatch()
-        patch.setattr('pymongo.MongoClient', mongomock.Connection)
+        patch.setattr('pymongo.MongoClient', mongomock.MongoClient)
 
         from helga_karma import plugin
         self.plugin = plugin

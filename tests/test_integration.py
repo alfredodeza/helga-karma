@@ -10,7 +10,7 @@ class TestKarmaPluginIntegration(TestCase):
 
         self.db_patch = mock.patch(
             'pymongo.MongoClient',
-            new_callable=lambda: mongomock.Connection
+            new_callable=lambda: mongomock.MongoClient
         )
         self.db_patch.start()
         self.addCleanup(self.db_patch.stop)
