@@ -37,6 +37,11 @@ karma (and that bump is variable depending on the ratio of times you --
 the thanker -- have thanked others vs. the number of times you've been
 thanked).
 
+You can specify multiple users as well::
+
+    youthere> !m red ned ted ed
+    helga>    You're doing good work, red, ned, ted and ed!
+
 ``!k[arma] [details] [for] [<nick>]``
 +++++++++++++++++++++++++++++++++++++
 
@@ -112,6 +117,11 @@ syntax, which does the same thing as ``!t`` or ``!m``::
     helga>    You're doing good work, youthere!
 
 (The words "c++" and "C++" are blacklisted to avoid false positives.)
+
+You can specify multiple users as well::
+
+    youthere> red++ ned++ ted++ ed++
+    helga>    You're doing good work, red, ned, ted and ed!
 
 
 Settings

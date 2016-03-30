@@ -17,7 +17,7 @@ class TestKarmaPlugin(object):
         self.plugin = plugin
 
     def test_give_handles_arrogance(self):
-        ret = self.plugin.give('foo', 'foo')
+        ret = self.plugin.give('foo', ['foo'])
         assert ret == "Uhh, do you want a gold star, foo?"
 
     def test_give(self):
@@ -26,7 +26,7 @@ class TestKarmaPlugin(object):
             to_user = mock.Mock()
             db.get_for_nick.side_effect = [from_user, to_user]
 
-            self.plugin.give('foo', 'bar')
+            self.plugin.give('foo', ['bar'])
 
             from_user.give_karma_to.assert_called_with(to_user)
 
@@ -222,6 +222,13 @@ class TestPlusPlusSupport(TestKarmaPlugin):
     def test_autokarma_no_match_cpp(self):
         matcher = self.plugin._autokarma_match
         assert matcher('I love programming in C++') == []
+
+    def test_autokarma_multiple_matches(self):
+        matcher = self.plugin._autokarma_match
+        result = matcher('go team helga++ andrewschoen++ yuriw++')
+        assert 'helga++' == result[0]
+        assert 'andrewschoen++' == result[1]
+        assert 'yuriw++' == result[2]
 
 
 class TestInvalidWords(TestKarmaPlugin):

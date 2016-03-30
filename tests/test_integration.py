@@ -268,7 +268,7 @@ class TestKarmaPluginIntegration(TestCase):
             )
             fmt_msg.assert_called_with(
                 'good_job',
-                nick=nick,
+                nicks=nick,
             )
 
     @mock.patch('helga_karma.data.KarmaRecord.get_value')
