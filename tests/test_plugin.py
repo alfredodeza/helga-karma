@@ -190,9 +190,9 @@ class TestKarmaPlugin(object):
     def test_autokarma_match(self):
         matcher = self.plugin._autokarma_match
 
-        assert 'helga' == matcher('thanks, helga')[0][1]
-        assert 'helga' == matcher('TYVM helga!')[0][1]
-        assert 'helga' == matcher('ty helga. i needed that reminder')[0][1]
+        assert ['helga'] == matcher('thanks, helga')
+        assert ['helga'] == matcher('TYVM helga!')
+        assert ['helga'] == matcher('ty helga. i needed that reminder')
 
         assert not matcher('i appreciate it helga')
 
@@ -201,19 +201,19 @@ class TestPlusPlusSupport(TestKarmaPlugin):
 
     def test_autokarma_match_nick_alone(self):
         matcher = self.plugin._autokarma_match
-        assert 'helga++' == matcher('helga++')[0][1]
+        assert ['helga++'] == matcher('helga++')
 
     def test_autokarma_match_nick_leading_whitespace(self):
         matcher = self.plugin._autokarma_match
-        assert 'helga++' == matcher(' helga++')[0][1]
+        assert ['helga++'] == matcher(' helga++')
 
     def test_autokarma_match_leading_text_matches(self):
         matcher = self.plugin._autokarma_match
-        assert 'helga++' == matcher('you are doing great helga++')[0][1]
+        assert ['helga++'] == matcher('you are doing great helga++')
 
     def test_autokarma_match_trailing_text_matches(self):
         matcher = self.plugin._autokarma_match
-        assert 'helga++' == matcher('you are doing great helga++ fantastic job there')[0][1]
+        assert ['helga++'] == matcher('you are doing great helga++ fantastic job there')
 
     def test_autokarma_no_match_trailing_garbage(self):
         matcher = self.plugin._autokarma_match

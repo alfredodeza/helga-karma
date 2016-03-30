@@ -244,8 +244,8 @@ def _handle_command(client, channel, nick, message, command, args):
 
 
 def _handle_match(client, channel, nick, message, matches):
-    is_pp = matches[0][1].endswith('++')
-    to_nick = matches[0][1].split('++')[0]
+    is_pp = matches[0].endswith('++')
+    to_nick = matches[0].split('++')[0]
     logger.info('Autokarma: {from_nick} -> {to_nick}'.format(from_nick=nick,
                                                              to_nick=to_nick))
     karma_given = give(from_nick=nick, to_nick=to_nick)
@@ -272,11 +272,11 @@ def _autokarma_match(message):
     if re.findall(skip_pattern, message):
         return None
 
-    pattern = r'^(?i)({thanks})[^\w]+({nick}).*$'.format(
+    pattern = r'^(?i)(?:{thanks})[^\w]+({nick}).*$'.format(
         thanks='|'.join(thanks_words),
         nick=VALID_NICK_PAT
     )
-    pp_pattern = r'(\w*\s+)*((?![cC]\+\+){nick}\+\+)(\s+|$).*$'.format(nick=VALID_NICK_PAT)
+    pp_pattern = r'(?:\w*\s+)*((?![cC]\+\+){nick}\+\+)(?:\s+|$).*$'.format(nick=VALID_NICK_PAT)
     return re.findall(pattern, message) or re.findall(pp_pattern, message)
 
 
