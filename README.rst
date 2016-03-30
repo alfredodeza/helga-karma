@@ -98,6 +98,20 @@ Example::
     helga>  coddingtonbear and coddingtonbear_away are now unlinked, person.
 
 
+Matches
+-------
+
+``<nick>++``
+++++++++++++
+
+Instead of the ``!t`` or ``!m`` commands, you may want to use the ``++``
+syntax, which does the same thing as ``!t`` or ``!m``::
+
+    youthere> I've just told a funny joke.
+    person>   youthere++
+    helga>    You're doing good work, youthere!
+
+
 Settings
 --------
 
