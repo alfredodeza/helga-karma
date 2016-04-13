@@ -38,7 +38,7 @@ setup(
     tests_require=[
         'nose',
         'mock',
-        'mongomock',
+        'mongomock>=3.1.0',
     ],
     test_suite='nose.collector',
 )

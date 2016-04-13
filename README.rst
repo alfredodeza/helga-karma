@@ -37,6 +37,11 @@ karma (and that bump is variable depending on the ratio of times you --
 the thanker -- have thanked others vs. the number of times you've been
 thanked).
 
+You can specify multiple users as well::
+
+    youthere> !m red ned ted ed
+    helga>    You're doing good work, red, ned, ted and ed!
+
 ``!k[arma] [details] [for] [<nick>]``
 +++++++++++++++++++++++++++++++++++++
 
@@ -96,6 +101,27 @@ Example::
 
     person> !karma coddingtonbear!=coddingtonbear_away
     helga>  coddingtonbear and coddingtonbear_away are now unlinked, person.
+
+
+Matches
+-------
+
+``<nick>++``
+++++++++++++
+
+Instead of the ``!t`` or ``!m`` commands, you may want to use the ``++``
+syntax, which does the same thing as ``!t`` or ``!m``::
+
+    youthere> I've just told a funny joke.
+    person>   youthere++
+    helga>    You're doing good work, youthere!
+
+(The words "c++" and "C++" are blacklisted to avoid false positives.)
+
+You can specify multiple users as well::
+
+    youthere> red++ ned++ ted++ ed++
+    helga>    You're doing good work, red, ned, ted and ed!
 
 
 Settings

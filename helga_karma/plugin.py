@@ -39,7 +39,7 @@ MESSAGES = {
     'unlinked': '{usera} and {userb} are now unlinked.',
 
     'too_arrogant': 'Uhh, do you want a gold star, {nick}?',
-    'good_job': 'You\'re doing good work, {nick}!',
+    'good_job': 'You\'re doing good work, {nicks}!',
 
     'unknown_user_many': (
         'Neither of the users you specified appear to exist, {nick}.'
@@ -134,19 +134,26 @@ def top(limit=10):
     return lines
 
 
-def give(from_nick, to_nick):
+def give(from_nick, to_nicks):
     """
-    Give karma from one user to another with some regards to greediness
+    Give karma from one user to other users with some regards to greediness
     """
-    if from_nick == to_nick:
+    if from_nick in to_nicks:
         return format_message('too_arrogant', nick=from_nick)
 
     from_record = KarmaRecord.get_for_nick(from_nick)
-    to_record = KarmaRecord.get_for_nick(to_nick)
 
-    from_record.give_karma_to(to_record)
+    for to_nick in to_nicks:
+        to_record = KarmaRecord.get_for_nick(to_nick)
+        from_record.give_karma_to(to_record)
 
-    return format_message('good_job', nick=to_nick)
+    # Return a nicely-formatted message for the recipient(s)
+    if len(to_nicks) == 1:
+        recipients = to_nicks[0]
+    else:
+        recipients = "{} and {}".format(", ".join(to_nicks[:-1]), to_nicks[-1])
+
+    return format_message('good_job', nicks=recipients)
 
 
 def alias(requested_by, nick1, nick2):
@@ -215,7 +222,7 @@ def _handle_command(client, channel, nick, message, command, args):
     The command variant of this plugin
     """
     if command in ('t', 'thanks', 'm', 'motivate'):
-        return give(from_nick=nick, to_nick=args[0])
+        return give(from_nick=nick, to_nicks=args)
 
     # Handle the base `karma` command
     if not args:
@@ -244,11 +251,14 @@ def _handle_command(client, channel, nick, message, command, args):
 
 
 def _handle_match(client, channel, nick, message, matches):
-    is_pp = matches[0][1].endswith('++')
-    to_nick = matches[0][1].split('++')[0]
-    logger.info('Autokarma: {from_nick} -> {to_nick}'.format(from_nick=nick,
-                                                             to_nick=to_nick))
-    karma_given = give(from_nick=nick, to_nick=to_nick)
+    to_nicks = []
+    for match in matches:
+        is_pp = match.endswith('++')
+        to_nick = match.split('++')[0]
+        logger.info('Autokarma: {from_nick} -> {to_nick}'.format(from_nick=nick,
+                                                                 to_nick=to_nick))
+        to_nicks.append(to_nick)
+    karma_given = give(from_nick=nick, to_nicks=to_nicks)
     if is_pp:
         return karma_given
 
@@ -272,11 +282,11 @@ def _autokarma_match(message):
     if re.findall(skip_pattern, message):
         return None
 
-    pattern = r'^(?i)({thanks})[^\w]+({nick}).*$'.format(
+    pattern = r'^(?i)(?:{thanks})[^\w]+({nick}).*$'.format(
         thanks='|'.join(thanks_words),
         nick=VALID_NICK_PAT
     )
-    pp_pattern = r'(\w*\s+)*({nick}\+\+)(\s+|$).*$'.format(nick=VALID_NICK_PAT)
+    pp_pattern = r'(?:\w*\s+)*((?![cC]\+\+){nick}\+\+)(?:\s+|$)'.format(nick=VALID_NICK_PAT)
     return re.findall(pattern, message) or re.findall(pp_pattern, message)
 
 

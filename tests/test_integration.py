@@ -10,7 +10,7 @@ class TestKarmaPluginIntegration(TestCase):
 
         self.db_patch = mock.patch(
             'pymongo.MongoClient',
-            new_callable=lambda: mongomock.Connection
+            new_callable=lambda: mongomock.MongoClient
         )
         self.db_patch.start()
         self.addCleanup(self.db_patch.stop)
@@ -268,7 +268,7 @@ class TestKarmaPluginIntegration(TestCase):
             )
             fmt_msg.assert_called_with(
                 'good_job',
-                nick=nick,
+                nicks=nick,
             )
 
     @mock.patch('helga_karma.data.KarmaRecord.get_value')
