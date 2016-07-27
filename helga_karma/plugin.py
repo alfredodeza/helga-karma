@@ -222,7 +222,8 @@ def _handle_command(client, channel, nick, message, command, args):
     The command variant of this plugin
     """
     if command in ('t', 'thanks', 'm', 'motivate'):
-        return give(from_nick=nick, to_nicks=args)
+        to_nicks = map(lambda x: x.rstrip(','), args)
+        return give(from_nick=nick, to_nicks=to_nicks)
 
     # Handle the base `karma` command
     if not args:
