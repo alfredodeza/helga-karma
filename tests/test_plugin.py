@@ -215,6 +215,10 @@ class TestPlusPlusSupport(TestKarmaPlugin):
         matcher = self.plugin._autokarma_match
         assert ['helga++'] == matcher('you are doing great helga++ fantastic job there')
 
+    def test_autokarma_match_trailing_comma_matches(self):
+        matcher = self.plugin._autokarma_match
+        assert ['helga++'] == matcher('helga++, way to go')
+
     def test_autokarma_no_match_trailing_garbage(self):
         matcher = self.plugin._autokarma_match
         assert matcher('helga++burrrr') == []
